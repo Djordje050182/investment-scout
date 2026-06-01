@@ -1,9 +1,20 @@
 # engine/adapters/yfinance_us.py
-"""US-equity adapter backed by yfinance (free). Skips per-symbol failures."""
+"""Multi-market adapter backed by yfinance (free). Skips per-symbol failures.
+
+Handles US equities, ASX equities (.AX), and crypto (-USD). The market is
+inferred from the symbol. Crypto has no company fundamentals, so for crypto we
+skip the (slow, often-empty) .info call and screen on technicals only.
+"""
 import time
 from typing import Dict, List, Optional
 import yfinance as yf
 from engine.adapters.base import DataAdapter, MarketData
+from engine.universe import market_of
+
+
+def has_fundamentals(market: str) -> bool:
+    """Whether a market has company fundamentals worth screening (crypto does not)."""
+    return market != "Crypto"
 
 
 def extract_fundamentals(info: Dict) -> Dict[str, float]:
@@ -35,17 +46,20 @@ class YFinanceUSAdapter(DataAdapter):
         self.throttle_sec = throttle_sec
 
     def _fetch_one(self, symbol: str) -> Optional[MarketData]:
+        market = market_of(symbol)
         ticker = yf.Ticker(symbol)
         prices = ticker.history(period=self.period, auto_adjust=False)
         if prices is None or len(prices) < 60:
             return None
-        try:
-            info = ticker.info or {}
-        except Exception:
-            info = {}
-        fundamentals = extract_fundamentals(info)
+        fundamentals: Dict[str, float] = {}
+        if has_fundamentals(market):
+            try:
+                info = ticker.info or {}
+            except Exception:
+                info = {}
+            fundamentals = extract_fundamentals(info)
         price = float(prices["Close"].iloc[-1])
-        return MarketData(symbol=symbol, market="US", prices=prices,
+        return MarketData(symbol=symbol, market=market, prices=prices,
                           fundamentals=fundamentals, price=price)
 
     def fetch(self, symbols: List[str]) -> List[MarketData]:

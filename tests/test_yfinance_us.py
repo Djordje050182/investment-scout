@@ -1,5 +1,13 @@
 # tests/test_yfinance_us.py
-from engine.adapters.yfinance_us import extract_fundamentals
+from engine.adapters.yfinance_us import extract_fundamentals, has_fundamentals
+from engine.universe import market_of
+
+
+def test_crypto_has_no_fundamentals():
+    # Crypto isn't a company — we never screen it on Buffett-style metrics.
+    assert has_fundamentals(market_of("BTC-USD")) is False
+    assert has_fundamentals(market_of("AAPL")) is True
+    assert has_fundamentals(market_of("BHP.AX")) is True
 
 
 def test_extract_fundamentals_maps_keys():

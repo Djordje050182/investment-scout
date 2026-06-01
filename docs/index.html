@@ -51,10 +51,20 @@
       <div class="controls__group" role="group" aria-label="Filter by tier">
         <span class="controls__label">Conviction type</span>
         <div class="segmented" id="tier-filter">
-          <button type="button" class="seg is-active" data-tier="all" aria-pressed="true">All</button>
-          <button type="button" class="seg" data-tier="both" aria-pressed="false">High conviction</button>
-          <button type="button" class="seg" data-tier="technical" aria-pressed="false">Technical</button>
-          <button type="button" class="seg" data-tier="fundamental" aria-pressed="false">Fundamental</button>
+          <button type="button" class="seg is-active" data-value="all" aria-pressed="true">All</button>
+          <button type="button" class="seg" data-value="both" aria-pressed="false">High conviction</button>
+          <button type="button" class="seg" data-value="technical" aria-pressed="false">Technical</button>
+          <button type="button" class="seg" data-value="fundamental" aria-pressed="false">Fundamental</button>
+        </div>
+      </div>
+
+      <div class="controls__group" role="group" aria-label="Filter by market">
+        <span class="controls__label">Market</span>
+        <div class="segmented" id="market-filter">
+          <button type="button" class="seg is-active" data-value="all" aria-pressed="true">All</button>
+          <button type="button" class="seg" data-value="US" aria-pressed="false">US</button>
+          <button type="button" class="seg" data-value="ASX" aria-pressed="false">ASX</button>
+          <button type="button" class="seg" data-value="Crypto" aria-pressed="false">Crypto</button>
         </div>
       </div>
 
@@ -76,6 +86,46 @@
       <p class="empty__headline">No opportunities cleared the bar today.</p>
       <p class="empty__hint">Loosen the filters or check back after the next scan.</p>
     </div>
+
+    <section class="glossary" aria-label="What the terms mean">
+      <h2 class="glossary__title">What the scores mean</h2>
+      <dl class="glossary__grid">
+        <div class="glossary__item">
+          <dt>Conviction</dt>
+          <dd>Our 0–100 confidence score, blending the chart (technical) and the
+          business (fundamental) signals. When both line up, the score gets a
+          bonus. Higher means a stronger lead — never a guarantee.</dd>
+        </div>
+        <div class="glossary__item">
+          <dt>Quality</dt>
+          <dd>How good the business is: consistently high return on equity, healthy
+          profit margins, low debt, and positive free cash flow. Good money made
+          without big risks.</dd>
+        </div>
+        <div class="glossary__item">
+          <dt>Value</dt>
+          <dd>Whether the price looks reasonable for what you get — mainly the P/E
+          ratio. A great company at a silly price is not a great investment.</dd>
+        </div>
+        <div class="glossary__item">
+          <dt>Moat</dt>
+          <dd>A durable competitive advantage that protects profits — a strong brand,
+          network effects, switching costs. We approximate it with steady, high
+          margins and returns. Warren Buffett's favourite trait.</dd>
+        </div>
+        <div class="glossary__item">
+          <dt>High Conviction (both)</dt>
+          <dd>The chart setup and the business fundamentals look strong at the same
+          time — a great company and a sensible entry point. Our top tier.</dd>
+        </div>
+        <div class="glossary__item">
+          <dt>Technical &amp; Fundamental</dt>
+          <dd>Technical = surfaced on the chart alone (patterns, breakouts, trend).
+          Fundamental = surfaced on the business alone. Crypto is always
+          technical-only — it has no company fundamentals.</dd>
+        </div>
+      </dl>
+    </section>
   </main>
 
   <footer class="disclaimer" role="contentinfo">

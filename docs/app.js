@@ -16,18 +16,41 @@
     empty: document.getElementById("empty"),
     status: document.getElementById("status"),
     tierFilter: document.getElementById("tier-filter"),
+    marketFilter: document.getElementById("market-filter"),
     minConviction: document.getElementById("min-conviction"),
     minConvictionValue: document.getElementById("min-conviction-value"),
   };
 
   // ---- State --------------------------------------------------------------
   let suggestions = [];                 // sorted, full list from the scan
-  const filters = { tier: "all", minConviction: 0 };
+  const filters = { tier: "all", market: "all", minConviction: 0 };
 
   const TIER_LABEL = {
     both: "High Conviction",
     technical: "Technical",
     fundamental: "Fundamental",
+  };
+
+  // Plain-English definitions surfaced as tooltips (and in the glossary).
+  const GLOSSARY = {
+    conviction: "Our 0–100 confidence score. It blends the technical (chart) and " +
+      "fundamental (business) signals; when both line up the score gets a bonus. " +
+      "Higher means a stronger lead — never a guarantee.",
+    quality: "How good the business is: consistently high return on equity, healthy " +
+      "profit margins, low debt, and positive free cash flow. A high-quality company " +
+      "makes good money without taking big risks to do it.",
+    value: "Whether the price looks reasonable for what you get — mainly the P/E ratio " +
+      "(price relative to earnings). High value means you're not overpaying; a great " +
+      "company at a silly price is not a great investment.",
+    moat: "A durable competitive advantage that protects profits from competitors — " +
+      "think a strong brand, network effects, or switching costs. We approximate it " +
+      "with steady, high margins and returns over time. Warren Buffett's favourite trait.",
+    both: "Both the chart setup and the business fundamentals look strong at the same " +
+      "time — a great company AND a sensible entry point. Our highest-conviction tier.",
+    technical: "Surfaced on the chart alone: price and volume patterns like a " +
+      "cup-and-handle, a breakout, or an uptrend. (Crypto is always technical-only.)",
+    fundamental: "Surfaced on the business alone: high quality and a reasonable price, " +
+      "even if the chart isn't flashing a setup yet.",
   };
 
   // ---- Helpers ------------------------------------------------------------
@@ -64,6 +87,14 @@
     ));
   }
 
+  // A small "?" affordance that reveals a plain-English definition on hover/focus.
+  function infoTip(key) {
+    const def = GLOSSARY[key];
+    if (!def) return "";
+    return `<button type="button" class="info" tabindex="0"
+      aria-label="What does this mean?" data-tip="${escapeHtml(def)}">?</button>`;
+  }
+
   // ---- Card builder -------------------------------------------------------
   function buildCard(s) {
     const tier = TIER_LABEL[s.tier] ? s.tier : "fundamental";
@@ -89,14 +120,21 @@
       : `<span class="chip chip--none">No patterns detected</span>`;
 
     const f = s.fundamental || {};
-    const scoreRow = (name, val) => {
+    const scoreRow = (name, key, val) => {
       const v = pct(val);
       return `<div class="score">
-        <span class="score__name">${name}</span>
+        <span class="score__name">${name}${infoTip(key)}</span>
         <span class="score__track"><span class="score__fill" style="width:${v}%"></span></span>
         <span class="score__val">${v}</span>
       </div>`;
     };
+
+    const summaryHtml = s.summary
+      ? `<p class="card__summary">${escapeHtml(s.summary)}</p>`
+      : "";
+
+    // Crypto has no fundamentals — don't show an all-zero fundamental profile.
+    const isCrypto = (s.market || "").toLowerCase() === "crypto";
 
     const techScore = pct(s.technical && s.technical.score);
     const fundScore = pct(s.fundamental && s.fundamental.score);
@@ -117,11 +155,13 @@
               stroke-dasharray="${C.toFixed(1)}" stroke-dashoffset="${offset.toFixed(1)}"/>
           </svg>
           <span class="ring__num">${conviction}</span>
-          <span class="ring__label">Conviction</span>
+          <span class="ring__label">Conviction${infoTip("conviction")}</span>
         </div>
       </div>
 
-      <span class="badge badge--${tier}">${TIER_LABEL[tier]}</span>
+      <span class="badge badge--${tier}">${TIER_LABEL[tier]}${infoTip(tier)}</span>
+
+      ${summaryHtml}
 
       <div class="block">
         <h3 class="block__title">Why it surfaced</h3>
@@ -133,18 +173,24 @@
         <div class="patterns">${patternsHtml}</div>
       </div>
 
+      ${isCrypto ? `
+      <div class="block">
+        <h3 class="block__title">Fundamental profile</h3>
+        <p class="block__note">Crypto isn't a company, so there are no business
+        fundamentals to screen — this lead is based on price action alone.</p>
+      </div>` : `
       <div class="block">
         <h3 class="block__title">Fundamental profile</h3>
         <div class="scores">
-          ${scoreRow("Quality", f.quality)}
-          ${scoreRow("Value", f.value)}
-          ${scoreRow("Moat", f.moat)}
+          ${scoreRow("Quality", "quality", f.quality)}
+          ${scoreRow("Value", "value", f.value)}
+          ${scoreRow("Moat", "moat", f.moat)}
         </div>
-      </div>
+      </div>`}
 
       <div class="card__foot">
         <span>Technical <b>${techScore}</b></span>
-        <span>Fundamental <b>${fundScore}</b></span>
+        <span>Fundamental <b>${isCrypto ? "—" : fundScore}</b></span>
       </div>
     `;
     return card;
@@ -154,8 +200,9 @@
   function render() {
     const visible = suggestions.filter((s) => {
       const tierOk = filters.tier === "all" || s.tier === filters.tier;
+      const marketOk = filters.market === "all" || s.market === filters.market;
       const convOk = (Number(s.conviction) || 0) >= filters.minConviction;
-      return tierOk && convOk;
+      return tierOk && marketOk && convOk;
     });
 
     els.cards.innerHTML = "";
@@ -176,18 +223,24 @@
   }
 
   // ---- Filter wiring ------------------------------------------------------
-  function setupControls() {
-    els.tierFilter.addEventListener("click", (e) => {
+  function wireSegmented(container, key) {
+    if (!container) return;
+    container.addEventListener("click", (e) => {
       const btn = e.target.closest(".seg");
       if (!btn) return;
-      filters.tier = btn.dataset.tier;
-      els.tierFilter.querySelectorAll(".seg").forEach((b) => {
+      filters[key] = btn.dataset.value;
+      container.querySelectorAll(".seg").forEach((b) => {
         const active = b === btn;
         b.classList.toggle("is-active", active);
         b.setAttribute("aria-pressed", String(active));
       });
       render();
     });
+  }
+
+  function setupControls() {
+    wireSegmented(els.tierFilter, "tier");
+    wireSegmented(els.marketFilter, "market");
 
     const onSlide = () => {
       const v = Number(els.minConviction.value);

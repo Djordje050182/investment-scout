@@ -20,6 +20,12 @@ def test_rsi_all_losses_is_low():
     assert val < 10
 
 
+def test_rsi_flat_series_is_neutral():
+    s = pd.Series([42.0] * 260, dtype="float64")
+    val = rsi(s, 14).iloc[-1]
+    assert 45 <= val <= 55
+
+
 def test_recent_high_excludes_last_n():
     # last 3 values are small; the prior window peaks at 100
     s = pd.Series([10, 100, 20, 5, 5, 5], dtype="float64")

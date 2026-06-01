@@ -94,8 +94,14 @@ def scan_technical(prices: pd.DataFrame) -> Dict[str, object]:
     breakout = _detect_breakout(close, volume)
     trend = _detect_uptrend(close)
     rsi_val = float(rsi(close, 14).iloc[-1])
-    # healthy momentum band 50-70 is good; overbought >80 penalized
-    rsi_score = 1.0 if 50 <= rsi_val <= 70 else (0.5 if 40 <= rsi_val < 50 else 0.0)
+    if pd.isna(rsi_val):
+        # Not enough bars to compute RSI yet: treat as neutral, score 0.5.
+        rsi_val = 50.0
+        rsi_score = 0.5
+    else:
+        # rising momentum (above the 50 neutral line, not overbought) is bullish;
+        # a dead-neutral RSI of 50 is not a signal on its own.
+        rsi_score = 1.0 if 50 < rsi_val <= 70 else (0.5 if 40 <= rsi_val < 50 else 0.0)
 
     patterns: List[str] = []
     if cup > 0:

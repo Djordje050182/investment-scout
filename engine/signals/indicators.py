@@ -17,7 +17,10 @@ def rsi(series: pd.Series, period: int = 14) -> pd.Series:
     avg_loss = loss.ewm(alpha=1.0 / period, min_periods=period, adjust=False).mean()
     rs = avg_gain / avg_loss.replace(0.0, float("nan"))
     out = 100.0 - (100.0 / (1.0 + rs))
-    return out.fillna(100.0)
+    # Distinguish flat (neutral) from pure-gain runs; leave warm-up window NaN.
+    out = out.where(~((avg_loss == 0) & (avg_gain == 0)), 50.0)
+    out = out.where(~((avg_loss == 0) & (avg_gain > 0)), 100.0)
+    return out
 
 
 def recent_high(series: pd.Series, lookback: int, exclude_last: int = 0) -> float:

@@ -87,7 +87,7 @@ a { color: var(--amber); }
   gap: 24px;
 }
 
-.brand { display: flex; align-items: center; gap: 16px; }
+.brand { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; min-width: 0; }
 .brand__mark {
   color: var(--amber);
   display: grid;
@@ -113,6 +113,25 @@ a { color: var(--amber); }
   letter-spacing: 0.42em;
   text-transform: uppercase;
   color: var(--amber);
+}
+.brand__about {
+  align-self: center;
+  margin-left: 4px;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.06em;
+  color: var(--ink-dim);
+  text-decoration: none;
+  padding: 6px 12px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  transition: color 0.15s ease, border-color 0.15s ease;
+  white-space: nowrap;
+}
+.brand__about:hover, .brand__about:focus-visible {
+  color: var(--amber);
+  border-color: var(--amber);
+  outline: none;
 }
 
 .meta {
@@ -604,20 +623,91 @@ input[type="range"]:focus-visible {
 .info:hover::after, .info:focus-visible::after { opacity: 1; visibility: visible; }
 
 /* ----------------------------------------------------------------- glossary */
-.glossary {
+/* ------------------------------------------------------------- about section */
+html { scroll-behavior: smooth; }
+
+.about {
   max-width: var(--maxw);
-  margin: 48px auto 0;
-  padding: 28px clamp(18px, 4vw, 44px);
+  margin: 56px auto 0;
+  padding: 32px clamp(18px, 4vw, 44px);
   background: linear-gradient(180deg, var(--panel), var(--bg-2));
   border: 1px solid var(--line-soft);
   border-radius: var(--radius);
+  scroll-margin-top: 20px;
 }
+.about__title {
+  font-family: var(--font-display);
+  font-size: clamp(1.5rem, 1.2rem + 1.2vw, 2rem);
+  font-weight: 600;
+  margin: 0 0 16px;
+  color: var(--ink);
+}
+.about__lede {
+  max-width: 70ch;
+  margin: 0 0 28px;
+}
+.about__lede p {
+  margin: 0;
+  font-size: 1.02rem;
+  line-height: 1.6;
+  color: var(--ink-dim);
+}
+.about__lede em { color: var(--amber); font-style: italic; }
+.about__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 18px;
+  margin: 0 0 12px;
+}
+.about__card {
+  padding: 20px 22px;
+  background: var(--bg-2);
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius-sm);
+}
+.about__card h3 {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--amber);
+  margin: 0 0 10px;
+}
+.about__card p {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.58;
+  color: var(--ink-dim);
+}
+.about__card strong { color: var(--ink); font-weight: 600; }
+.about__card em { color: var(--ink); font-style: italic; }
+.about__card code {
+  font-family: var(--font-mono);
+  font-size: 0.82em;
+  color: var(--teal);
+  background: rgba(56,214,196,0.08);
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+
+/* ----------------------------------------------------------------- glossary */
 .glossary__title {
   font-family: var(--font-display);
-  font-size: 1.25rem;
+  font-size: clamp(1.35rem, 1.1rem + 1vw, 1.7rem);
   font-weight: 600;
-  margin: 0 0 18px;
+  margin: 40px 0 6px;
   color: var(--ink);
+  padding-top: 24px;
+  border-top: 1px solid var(--line-soft);
+  scroll-margin-top: 20px;
+}
+.glossary__group {
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin: 24px 0 14px;
 }
 .glossary__grid {
   display: grid;
@@ -625,6 +715,7 @@ input[type="range"]:focus-visible {
   gap: 18px 28px;
   margin: 0;
 }
+.glossary__item dd strong { color: var(--ink); font-weight: 600; }
 .glossary__item dt {
   font-family: var(--font-mono);
   font-size: 0.78rem;
@@ -757,6 +848,10 @@ input[type="range"]:focus-visible {
   .ticker__sym { font-size: 1.7rem; }
   /* keep the conviction ring and ticker from crowding on small screens */
   .controls { gap: 18px; }
+  /* About link drops to its own line so the brand row can't overflow */
+  .brand { width: 100%; }
+  .brand__about { margin-left: 0; order: 3; flex-basis: 100%; text-align: center; }
+  .about__grid { grid-template-columns: 1fr; }
 }
 
 /* very small phones: stack the meta cells entirely and ease the type down */

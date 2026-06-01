@@ -27,6 +27,7 @@
           <h1>Investment&nbsp;Scout</h1>
           <p class="brand__sub">Signal Desk</p>
         </div>
+        <a class="brand__about" href="#about">About &amp; glossary</a>
       </div>
 
       <dl class="meta" aria-label="Scan metadata">
@@ -87,15 +88,127 @@
       <p class="empty__hint">Loosen the filters or check back after the next scan.</p>
     </div>
 
-    <section class="glossary" aria-label="What the terms mean">
-      <h2 class="glossary__title">What the scores mean</h2>
+    <section class="about" id="about" aria-labelledby="about-title">
+      <h2 class="about__title" id="about-title">About Investment Scout</h2>
+
+      <div class="about__lede">
+        <p>Investment Scout is an automated research tool that scans the markets once
+        a day and surfaces a short list of opportunities worth a closer look — each
+        one with a plain-English explanation of <em>why</em> it showed up. It is a
+        starting point for your own research, not advice and not a trading bot: it
+        never buys or sells anything.</p>
+      </div>
+
+      <div class="about__grid">
+        <article class="about__card">
+          <h3>What it does</h3>
+          <p>Every weekday after the US market closes, it scans US, ASX, and crypto
+          markets for two kinds of opportunity: <strong>technical</strong> setups on
+          the price chart (e.g. a cup-and-handle or a breakout) and
+          <strong>fundamental</strong> strength in the business (a high-quality,
+          reasonably-priced company in the Warren Buffett mould). It scores each one,
+          keeps only those that clear a quality bar, and lists them here — and emails
+          them to the owner.</p>
+        </article>
+
+        <article class="about__card">
+          <h3>Where the data comes from</h3>
+          <p>All data is pulled from <strong>Yahoo Finance</strong> (via the free
+          <code>yfinance</code> library): daily price &amp; volume history, company
+          financials, profile details, and institutional ownership. Because it's a
+          free source, coverage is strongest for US large-caps, good for the ASX, and
+          price-only for crypto. Data can occasionally be delayed or incomplete — so
+          always treat a lead as a prompt to dig deeper, never as gospel.</p>
+        </article>
+
+        <article class="about__card">
+          <h3>How the scoring works</h3>
+          <p>Each candidate gets a <strong>technical</strong> score (0–1) from chart
+          pattern detectors and a <strong>fundamental</strong> score (0–1) from a
+          Buffett-style screen of quality, moat, value, and management. These combine
+          into a single <strong>Conviction</strong> score from 0–100. A name that
+          looks strong on <em>both</em> the chart and the business gets a bonus and is
+          flagged "High&nbsp;Conviction" — a great company <em>and</em> a sensible
+          entry point. Only candidates above the bar are shown.</p>
+        </article>
+
+        <article class="about__card">
+          <h3>What it deliberately doesn't do</h3>
+          <p>It doesn't place trades, hold your money, or connect to a broker. It
+          doesn't predict the future or tell you what to buy. It can't see news,
+          earnings calls, or anything beyond the numbers. Think of it as a tireless
+          junior analyst that hands you a daily shortlist with its reasoning — the
+          judgement, and the decision, stay with you.</p>
+        </article>
+      </div>
+
+      <h2 class="glossary__title" id="glossary">Glossary</h2>
+
+      <h3 class="glossary__group">Our scores</h3>
       <dl class="glossary__grid">
         <div class="glossary__item">
           <dt>Conviction</dt>
-          <dd>Our 0–100 confidence score, blending the chart (technical) and the
-          business (fundamental) signals. When both line up, the score gets a
+          <dd>Our headline 0–100 confidence score, blending the chart (technical) and
+          the business (fundamental) signals. When both line up, the score gets a
           bonus. Higher means a stronger lead — never a guarantee.</dd>
         </div>
+        <div class="glossary__item">
+          <dt>Strength</dt>
+          <dd>An overall read on how solid the business is, blending quality, moat, and
+          value into one number — separate from whether now is a good time to buy.</dd>
+        </div>
+        <div class="glossary__item">
+          <dt>Backing</dt>
+          <dd>How strongly professional investors back the company — mainly the share
+          owned by institutions (funds like BlackRock and Vanguard), with a lift for
+          insider ownership. High backing means the "smart money" is in.</dd>
+        </div>
+        <div class="glossary__item">
+          <dt>Tiers: High Conviction / Technical / Fundamental</dt>
+          <dd><strong>Technical</strong> = surfaced on the chart alone.
+          <strong>Fundamental</strong> = surfaced on the business alone.
+          <strong>High Conviction (both)</strong> = the chart and the business look
+          strong at once — our top tier. Crypto is always technical-only.</dd>
+        </div>
+      </dl>
+
+      <h3 class="glossary__group">Chart patterns (technical)</h3>
+      <dl class="glossary__grid">
+        <div class="glossary__item">
+          <dt>Cup-and-handle</dt>
+          <dd>A bullish pattern shaped like a teacup: a gradual, rounded decline and
+          recovery (the cup), then a small dip and steadying (the handle), with the
+          price ready to push higher. We require a genuinely rounded base — not a
+          sharp V — and a price sitting just below its prior peak.</dd>
+        </div>
+        <div class="glossary__item">
+          <dt>Breakout</dt>
+          <dd>The price pushes above a ceiling it has struggled to clear before
+          (resistance), ideally on heavier-than-usual trading volume. Strong volume
+          suggests real conviction behind the move rather than a fakeout.</dd>
+        </div>
+        <div class="glossary__item">
+          <dt>Uptrend (moving averages)</dt>
+          <dd>The price is above its rising 50-day and 200-day average prices — a sign
+          the broader direction is up. A "moving average" smooths out daily noise to
+          show the underlying trend.</dd>
+        </div>
+        <div class="glossary__item">
+          <dt>RSI (Relative Strength Index)</dt>
+          <dd>A 0–100 momentum gauge. Around 50 is neutral; we like healthy upward
+          momentum (roughly 50–70) but treat very high readings (overbought) as a
+          caution rather than a green light.</dd>
+        </div>
+        <div class="glossary__item">
+          <dt>Resistance &amp; volume</dt>
+          <dd><strong>Resistance</strong> is a price level a stock has repeatedly
+          failed to break above. <strong>Volume</strong> is how many shares traded —
+          a surge alongside a move signals stronger participation.</dd>
+        </div>
+      </dl>
+
+      <h3 class="glossary__group">Business metrics (fundamental)</h3>
+      <dl class="glossary__grid">
         <div class="glossary__item">
           <dt>Quality</dt>
           <dd>How good the business is: consistently high return on equity, healthy
@@ -111,29 +224,41 @@
           <dt>Moat</dt>
           <dd>A durable competitive advantage that protects profits — a strong brand,
           network effects, switching costs. We approximate it with steady, high
-          margins and returns. Warren Buffett's favourite trait.</dd>
+          margins and returns over time. Warren Buffett's favourite trait.</dd>
         </div>
         <div class="glossary__item">
-          <dt>Backing</dt>
-          <dd>How strongly professional investors back the company — mainly the share
-          owned by institutions (funds like BlackRock and Vanguard), with a lift for
-          insider ownership. High backing means the "smart money" is in.</dd>
+          <dt>ROE (Return on Equity)</dt>
+          <dd>How much profit a company generates from shareholders' money each year.
+          Consistently high ROE (say, above 15–20%) signals a genuinely productive,
+          well-run business.</dd>
         </div>
         <div class="glossary__item">
-          <dt>Strength</dt>
-          <dd>An overall read on how solid the business is, blending quality, moat, and
-          value into one number — separate from whether now is a good time to buy.</dd>
+          <dt>Profit margin</dt>
+          <dd>The share of revenue left as profit after costs. Fatter, stable margins
+          point to pricing power and an efficient operation.</dd>
         </div>
         <div class="glossary__item">
-          <dt>High Conviction (both)</dt>
-          <dd>The chart setup and the business fundamentals look strong at the same
-          time — a great company and a sensible entry point. Our top tier.</dd>
+          <dt>Debt-to-equity</dt>
+          <dd>How much the company borrows relative to its own capital. Lower is
+          safer — heavily indebted companies are more fragile when conditions turn.</dd>
         </div>
         <div class="glossary__item">
-          <dt>Technical &amp; Fundamental</dt>
-          <dd>Technical = surfaced on the chart alone (patterns, breakouts, trend).
-          Fundamental = surfaced on the business alone. Crypto is always
-          technical-only — it has no company fundamentals.</dd>
+          <dt>P/E ratio (Price-to-Earnings)</dt>
+          <dd>The share price divided by earnings per share — roughly, how many years
+          of profit you're paying for. A lower P/E (for a solid business) suggests
+          better value.</dd>
+        </div>
+        <div class="glossary__item">
+          <dt>Free cash flow</dt>
+          <dd>The cash left over after a company pays its running costs and
+          investment. Positive, growing free cash flow is the lifeblood of a healthy
+          business.</dd>
+        </div>
+        <div class="glossary__item">
+          <dt>Institutional &amp; insider ownership</dt>
+          <dd>The share of a company held by big professional funds (institutions) and
+          by its own executives and directors (insiders). High institutional holding
+          shows professional confidence; insider holding shows skin in the game.</dd>
         </div>
       </dl>
     </section>

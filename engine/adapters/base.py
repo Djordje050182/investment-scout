@@ -13,6 +13,8 @@ class MarketData:
     prices: pd.DataFrame              # OHLCV, daily, chronological
     fundamentals: Dict[str, float]    # may be partial; missing keys absent
     price: Optional[float] = None     # latest close convenience
+    profile: Optional[Dict] = None    # company info (name, sector, description, ...)
+    holders: Optional[List[Dict]] = None  # top institutional backers [{name, pct}]
 
 
 class DataAdapter:

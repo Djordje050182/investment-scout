@@ -10,11 +10,24 @@ from engine.signals.technical import scan_technical
 from engine.signals.fundamental import scan_fundamental
 from engine.signals.conviction import score_conviction, passes
 from engine.signals.explain import explain_suggestion
+from engine.signals.scores import backing_score, strength_score
+from engine.adapters.yfinance_us import has_fundamentals
 from engine.universe import get_universe
 from engine.notify.email import build_digest, send_email
 
 DEFAULT_OUT = "docs/data/signals.json"
 DEFAULT_HISTORY = "docs/data/history"
+
+
+def _build_company(md, fundamental: Dict) -> Dict:
+    """Assemble the company block: profile fields, named backers, and the two scores."""
+    profile = md.profile or {}
+    fund_present = has_fundamentals(md.market)
+    company = dict(profile)
+    company["holders"] = md.holders or []
+    company["backing_score"] = backing_score(profile)
+    company["strength_score"] = strength_score(fundamental, has_fundamentals=fund_present)
+    return company
 
 
 def build_suggestions(adapter: DataAdapter, symbols: List[str]) -> List[Dict]:
@@ -40,6 +53,7 @@ def build_suggestions(adapter: DataAdapter, symbols: List[str]) -> List[Dict]:
                             "moat": fundamental["moat"]},
         }
         suggestion["summary"] = explain_suggestion(suggestion)
+        suggestion["company"] = _build_company(md, fundamental)
         suggestions.append(suggestion)
     suggestions.sort(key=lambda s: s["conviction"], reverse=True)
     return suggestions

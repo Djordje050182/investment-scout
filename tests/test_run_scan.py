@@ -19,6 +19,10 @@ def test_build_suggestions_filters_by_threshold():
         fundamentals={"roe": 0.25, "debt_to_equity": 0.3, "profit_margin": 0.22,
                       "free_cash_flow": 5e9, "trailing_pe": 18.0, "shares_change": -0.02},
         price=99.0,
+        profile={"name": "Good Corp", "sector": "Tech", "country": "United States",
+                 "description": "Makes good things.", "held_institutions": 0.7,
+                 "held_insiders": 0.03},
+        holders=[{"name": "Blackrock Inc.", "pct": 0.08}],
     )
     weak = MarketData(
         symbol="MEH", market="US",
@@ -34,6 +38,28 @@ def test_build_suggestions_filters_by_threshold():
     assert "reasons" in g and len(g["reasons"]) > 0
     # each suggestion carries a plain-English explanation
     assert g.get("summary") and "GOOD" in g["summary"]
+    # company profile block is present with scores and named backers
+    co = g.get("company")
+    assert co and co["name"] == "Good Corp"
+    assert co["sector"] == "Tech"
+    assert isinstance(co["backing_score"], int) and 0 <= co["backing_score"] <= 100
+    assert isinstance(co["strength_score"], int)
+    assert co["holders"][0]["name"] == "Blackrock Inc."
+
+
+def test_build_suggestions_crypto_has_no_company_scores():
+    from tests.fixtures import uptrend_closes
+    coin = MarketData(
+        symbol="BTC-USD", market="Crypto",
+        prices=make_prices(uptrend_closes()),
+        fundamentals={}, price=70000.0, profile={}, holders=[],
+    )
+    suggestions = build_suggestions(FakeAdapter([coin]), ["BTC-USD"])
+    if suggestions:  # if it cleared the bar on technicals
+        co = suggestions[0].get("company")
+        # crypto: no backing/strength scores (None), not a fake zero
+        assert co is None or (co.get("backing_score") is None
+                              and co.get("strength_score") is None)
 
 
 def test_write_output_creates_valid_json(tmp_path):

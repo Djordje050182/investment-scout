@@ -737,11 +737,36 @@ input[type="range"]:focus-visible {
 
 /* --------------------------------------------------------------- responsive */
 @media (max-width: 620px) {
-  .masthead__inner { align-items: flex-start; }
-  .meta { width: 100%; }
-  .meta__cell { flex: 1; min-width: 0; }
+  .masthead__inner {
+    align-items: stretch;
+    gap: 18px;
+    padding: 20px clamp(14px, 4vw, 44px);
+  }
+  /* Meta cells become an even grid that wraps cleanly instead of a row that
+     overflows. The long timestamp is now allowed to wrap. */
+  .meta {
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+  .meta__cell { min-width: 0; padding: 9px 12px; }
+  .meta dd { white-space: normal; word-break: break-word; font-size: 0.82rem; }
+  .meta dt { font-size: 0.55rem; }
   .grid { grid-template-columns: 1fr; }
   .ticker__sym { font-size: 1.7rem; }
+  /* keep the conviction ring and ticker from crowding on small screens */
+  .controls { gap: 18px; }
+}
+
+/* very small phones: stack the meta cells entirely and ease the type down */
+@media (max-width: 380px) {
+  .meta { grid-template-columns: 1fr 1fr; }
+  .meta__cell--accent { grid-column: 1 / -1; }
+  .brand { gap: 12px; }
+  .brand__mark { width: 44px; height: 44px; }
+  .company__stats { gap: 10px; }
+  .stat { flex: 1 1 100%; }
 }
 
 @media (prefers-reduced-motion: reduce) {

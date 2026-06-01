@@ -1,0 +1,32 @@
+{
+  "scanned_at": "2026-06-01T21:30:00Z",
+  "universe": "starter",
+  "count": 2,
+  "suggestions": [
+    {
+      "symbol": "AAPL",
+      "market": "US",
+      "price": 195.12,
+      "conviction": 87,
+      "tier": "both",
+      "reasons": [
+        "ROE 25%",
+        "low debt/equity 0.3",
+        "Cup-and-handle forming",
+        "Breakout above resistance on volume"
+      ],
+      "technical": { "score": 0.82, "patterns": ["cup_and_handle", "breakout"] },
+      "fundamental": { "score": 0.79, "quality": 0.9, "value": 0.6, "moat": 0.85 }
+    },
+    {
+      "symbol": "COST",
+      "market": "US",
+      "price": 842.5,
+      "conviction": 63,
+      "tier": "fundamental",
+      "reasons": ["ROE 28%", "strong margin 13%"],
+      "technical": { "score": 0.2, "patterns": [] },
+      "fundamental": { "score": 0.74, "quality": 0.85, "value": 0.55, "moat": 0.8 }
+    }
+  ]
+}

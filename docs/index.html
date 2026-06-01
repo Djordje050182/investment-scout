@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Investment Scout — Signal Desk</title>
+  <meta name="description" content="Daily technical and fundamental research leads. Not financial advice." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <div class="grain" aria-hidden="true"></div>
+
+  <header class="masthead">
+    <div class="masthead__inner">
+      <div class="brand">
+        <span class="brand__mark" aria-hidden="true">
+          <svg viewBox="0 0 32 32" width="32" height="32" role="img" aria-label="Investment Scout logo">
+            <circle cx="16" cy="16" r="14" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.4"/>
+            <path d="M16 4 L16 28 M4 16 L28 16" stroke="currentColor" stroke-width="1" opacity="0.25"/>
+            <path d="M7 20 L13 13 L18 17 L25 9" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </span>
+        <div class="brand__text">
+          <h1>Investment&nbsp;Scout</h1>
+          <p class="brand__sub">Signal Desk</p>
+        </div>
+      </div>
+
+      <dl class="meta" aria-label="Scan metadata">
+        <div class="meta__cell">
+          <dt>Last scanned</dt>
+          <dd id="scanned-at">—</dd>
+        </div>
+        <div class="meta__cell">
+          <dt>Universe</dt>
+          <dd id="universe">—</dd>
+        </div>
+        <div class="meta__cell meta__cell--accent">
+          <dt>Leads</dt>
+          <dd id="count">—</dd>
+        </div>
+      </dl>
+    </div>
+  </header>
+
+  <main class="shell" id="main">
+    <section class="controls" aria-label="Filter controls">
+      <div class="controls__group" role="group" aria-label="Filter by tier">
+        <span class="controls__label">Conviction type</span>
+        <div class="segmented" id="tier-filter">
+          <button type="button" class="seg is-active" data-tier="all" aria-pressed="true">All</button>
+          <button type="button" class="seg" data-tier="both" aria-pressed="false">High conviction</button>
+          <button type="button" class="seg" data-tier="technical" aria-pressed="false">Technical</button>
+          <button type="button" class="seg" data-tier="fundamental" aria-pressed="false">Fundamental</button>
+        </div>
+      </div>
+
+      <div class="controls__group controls__group--slider">
+        <label class="controls__label" for="min-conviction">
+          Min. conviction <span class="controls__value" id="min-conviction-value">0</span>
+        </label>
+        <input type="range" id="min-conviction" min="0" max="100" step="1" value="0"
+               aria-describedby="min-conviction-value" />
+      </div>
+    </section>
+
+    <div id="status" class="status" role="status" aria-live="polite"></div>
+
+    <section id="cards" class="grid" aria-label="Signal suggestions"></section>
+
+    <div id="empty" class="empty" hidden>
+      <div class="empty__glyph" aria-hidden="true">∅</div>
+      <p class="empty__headline">No opportunities cleared the bar today.</p>
+      <p class="empty__hint">Loosen the filters or check back after the next scan.</p>
+    </div>
+  </main>
+
+  <footer class="disclaimer" role="contentinfo">
+    <p>Research leads only — not financial advice.</p>
+  </footer>
+
+  <script src="./app.js" defer></script>
+</body>
+</html>

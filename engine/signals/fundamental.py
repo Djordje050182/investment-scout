@@ -34,12 +34,12 @@ def scan_fundamental(f: Dict[str, float]) -> Dict[str, object]:
     pe = f.get("trailing_pe")
     shares_change = f.get("shares_change")  # negative = buybacks (good)
 
+    fcf_score = None if fcf is None else (1.0 if fcf > 0 else 0.0)
     quality = _avg([
         _band(roe, good=0.20, bad=0.05),
         _band(dte, good=0.3, bad=2.0),
         _band(margin, good=0.20, bad=0.0),
-        _band(1.0 if (fcf is not None and fcf > 0) else (0.0 if fcf is not None else None),
-              good=1.0, bad=0.0) if fcf is not None else None,
+        fcf_score,
     ])
     moat = _avg([
         _band(roe, good=0.20, bad=0.08),

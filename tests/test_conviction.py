@@ -1,5 +1,5 @@
 # tests/test_conviction.py
-from engine.signals.conviction import score_conviction, THRESHOLD
+from engine.signals.conviction import score_conviction, THRESHOLD, passes
 
 
 def _tech(score, patterns=None, detail=None):
@@ -16,6 +16,24 @@ def test_alignment_gets_both_tier_and_bonus():
     tech_only = score_conviction(_tech(0.7, ["cup_and_handle"]), _fund(0.0))
     assert aligned["tier"] == "both"
     # alignment should score strictly higher than either leg alone at same tech level
+    assert aligned["conviction"] > tech_only["conviction"]
+
+
+def test_strong_technical_only_passes():
+    r = score_conviction(_tech(0.9, ["breakout"]), _fund(0.0))
+    assert r["tier"] == "technical"
+    assert passes(r) is True
+
+
+def test_strong_fundamental_only_passes():
+    r = score_conviction(_tech(0.0), _fund(0.9))
+    assert r["tier"] == "fundamental"
+    assert passes(r) is True
+
+
+def test_aligned_outranks_technical_only_at_same_tech():
+    aligned = score_conviction(_tech(0.7, ["cup_and_handle"]), _fund(0.7))
+    tech_only = score_conviction(_tech(0.7, ["cup_and_handle"]), _fund(0.0))
     assert aligned["conviction"] > tech_only["conviction"]
 
 

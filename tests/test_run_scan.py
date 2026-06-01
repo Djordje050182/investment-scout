@@ -32,6 +32,8 @@ def test_build_suggestions_filters_by_threshold():
     g = next(s for s in suggestions if s["symbol"] == "GOOD")
     assert g["conviction"] >= 55
     assert "reasons" in g and len(g["reasons"]) > 0
+    # each suggestion carries a plain-English explanation
+    assert g.get("summary") and "GOOD" in g["summary"]
 
 
 def test_write_output_creates_valid_json(tmp_path):

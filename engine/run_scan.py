@@ -9,6 +9,7 @@ from engine.adapters.yfinance_us import YFinanceUSAdapter
 from engine.signals.technical import scan_technical
 from engine.signals.fundamental import scan_fundamental
 from engine.signals.conviction import score_conviction, passes
+from engine.signals.explain import explain_suggestion
 from engine.universe import get_universe
 from engine.notify.email import build_digest, send_email
 
@@ -25,7 +26,7 @@ def build_suggestions(adapter: DataAdapter, symbols: List[str]) -> List[Dict]:
         scored = score_conviction(technical, fundamental)
         if not passes(scored):
             continue
-        suggestions.append({
+        suggestion = {
             "symbol": md.symbol,
             "market": md.market,
             "price": md.price,
@@ -37,7 +38,9 @@ def build_suggestions(adapter: DataAdapter, symbols: List[str]) -> List[Dict]:
                             "quality": fundamental["quality"],
                             "value": fundamental["value"],
                             "moat": fundamental["moat"]},
-        })
+        }
+        suggestion["summary"] = explain_suggestion(suggestion)
+        suggestions.append(suggestion)
     suggestions.sort(key=lambda s: s["conviction"], reverse=True)
     return suggestions
 

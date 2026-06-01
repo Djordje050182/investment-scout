@@ -16,6 +16,8 @@ def build_digest(suggestions: List[Dict], scanned_at: str) -> Optional[Tuple[str
     for s in ranked:
         lines.append("{}  [{}]  conviction {}/100  ${:.2f}".format(
             s["symbol"], s["tier"].upper(), s["conviction"], s.get("price", 0.0)))
+        if s.get("summary"):
+            lines.append("    {}".format(s["summary"]))
         for r in s.get("reasons", []):
             lines.append("    - {}".format(r))
         lines.append("")

@@ -51,6 +51,12 @@
       "cup-and-handle, a breakout, or an uptrend. (Crypto is always technical-only.)",
     fundamental: "Surfaced on the business alone: high quality and a reasonable price, " +
       "even if the chart isn't flashing a setup yet.",
+    backing: "How strongly professional investors back this company — driven mainly " +
+      "by the share owned by institutions (funds like BlackRock and Vanguard), with " +
+      "a lift for insider ownership. High backing means the 'smart money' is in.",
+    strength: "An overall read on how solid the business is, blending its quality, " +
+      "moat, and value scores into one number. A high-strength company is a good " +
+      "business — separate from whether the chart says now is a good time to buy.",
   };
 
   // ---- Helpers ------------------------------------------------------------
@@ -93,6 +99,77 @@
     if (!def) return "";
     return `<button type="button" class="info" tabindex="0"
       aria-label="What does this mean?" data-tip="${escapeHtml(def)}">?</button>`;
+  }
+
+  // ---- Company section builder -------------------------------------------
+  function buildCompany(company, isCrypto) {
+    if (isCrypto) {
+      return `<div class="block company">
+        <h3 class="block__title">The company</h3>
+        <p class="block__note">This is a cryptocurrency, not a company — there's no
+        business, management, or institutional ownership behind it. The lead is
+        based purely on its price action.</p>
+      </div>`;
+    }
+    const c = company || {};
+    if (!c.name && !c.description && c.backing_score == null) return "";
+
+    const name = c.name ? `<p class="company__name">${escapeHtml(c.name)}</p>` : "";
+    const desc = c.description
+      ? `<p class="company__desc">${escapeHtml(c.description)}</p>` : "";
+
+    // meta line: sector · industry · country · employees
+    const bits = [];
+    if (c.sector) bits.push(escapeHtml(c.sector));
+    if (c.industry && c.industry !== c.sector) bits.push(escapeHtml(c.industry));
+    if (c.country) bits.push(escapeHtml(c.country));
+    if (typeof c.employees === "number" && c.employees > 0) {
+      bits.push(c.employees.toLocaleString() + " employees");
+    }
+    const meta = bits.length
+      ? `<p class="company__meta">${bits.join(" &middot; ")}</p>` : "";
+
+    // two-score stat row (Backing + Strength), only what's available
+    const stats = [];
+    if (typeof c.backing_score === "number") {
+      stats.push(statBlock("Backing", "backing", c.backing_score));
+    }
+    if (typeof c.strength_score === "number") {
+      stats.push(statBlock("Strength", "strength", c.strength_score));
+    }
+    const statRow = stats.length
+      ? `<div class="company__stats">${stats.join("")}</div>` : "";
+
+    // named institutional backers
+    const holders = Array.isArray(c.holders) ? c.holders : [];
+    let backersHtml = "";
+    if (holders.length) {
+      const items = holders.map((h) => {
+        const p = (typeof h.pct === "number")
+          ? ` <span class="backer__pct">${(h.pct * 100).toFixed(1)}%</span>` : "";
+        return `<li>${escapeHtml(h.name)}${p}</li>`;
+      }).join("");
+      backersHtml = `<div class="company__backers">
+        <span class="company__backers-label">Top institutional backers${infoTip("backing")}</span>
+        <ul class="backers">${items}</ul>
+      </div>`;
+    }
+
+    if (!name && !desc && !meta && !statRow && !backersHtml) return "";
+
+    return `<div class="block company">
+      <h3 class="block__title">The company</h3>
+      ${name}${meta}${desc}${statRow}${backersHtml}
+    </div>`;
+  }
+
+  function statBlock(label, key, val) {
+    const v = Math.max(0, Math.min(100, Math.round(Number(val) || 0)));
+    return `<div class="stat">
+      <span class="stat__label">${label}${infoTip(key)}</span>
+      <span class="stat__bar"><span class="stat__fill" style="width:${v}%"></span></span>
+      <span class="stat__val">${v}</span>
+    </div>`;
   }
 
   // ---- Card builder -------------------------------------------------------
@@ -139,6 +216,8 @@
     const techScore = pct(s.technical && s.technical.score);
     const fundScore = pct(s.fundamental && s.fundamental.score);
 
+    const companyHtml = buildCompany(s.company, isCrypto);
+
     card.innerHTML = `
       <div class="card__head">
         <div class="ticker">
@@ -162,6 +241,8 @@
       <span class="badge badge--${tier}">${TIER_LABEL[tier]}${infoTip(tier)}</span>
 
       ${summaryHtml}
+
+      ${companyHtml}
 
       <div class="block">
         <h3 class="block__title">Why it surfaced</h3>

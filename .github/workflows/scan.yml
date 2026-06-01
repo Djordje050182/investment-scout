@@ -1,0 +1,48 @@
+# .github/workflows/scan.yml
+name: Daily Scan
+
+on:
+  schedule:
+    # 21:30 UTC ~ shortly after US market close (16:30 ET / 17:30 EDT).
+    - cron: "30 21 * * 1-5"
+  workflow_dispatch: {}   # manual "Run now" button
+
+permissions:
+  contents: write          # allow committing results back
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run scan
+        env:
+          SMTP_HOST: ${{ secrets.SMTP_HOST }}
+          SMTP_PORT: ${{ secrets.SMTP_PORT }}
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASS: ${{ secrets.SMTP_PASS }}
+          EMAIL_TO: ${{ secrets.EMAIL_TO }}
+          SCOUT_UNIVERSE: starter
+        run: python -m engine.run_scan
+
+      - name: Commit results
+        run: |
+          git config user.name "investment-scout-bot"
+          git config user.email "bot@users.noreply.github.com"
+          git add docs/data/signals.json docs/data/history
+          if git diff --staged --quiet; then
+            echo "no changes to commit"
+          else
+            git commit -m "data: daily scan $(date -u +%Y-%m-%d)"
+            git push
+          fi

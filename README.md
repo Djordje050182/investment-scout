@@ -1,9 +1,10 @@
 # Investment Scout
 
-A daily, automated research engine that scans US equities for **technical**
-(cup-and-handle, breakouts, trend) and **fundamental** (Buffett-style quality,
-moat, value, management) opportunities, ranks them by conviction, and notifies
-you with the trade idea and *why* it fired.
+A daily, automated research engine that scans **US, ASX, and crypto** markets for
+**technical** (cup-and-handle, breakouts, trend) and **fundamental** (Buffett-style
+quality, moat, value, management) opportunities, ranks them by conviction, and
+notifies you with the trade idea and a plain-English explanation of *why* it fired.
+(Crypto is screened on technicals only — it has no company fundamentals.)
 
 > **Research leads only — not financial advice.** No trades are executed.
 
@@ -36,8 +37,11 @@ python3 -m venv .venv
 
 ## Extending
 
-- **New market:** add an adapter in `engine/adapters/` implementing `DataAdapter`,
-  and a universe entry in `engine/universe.py`.
+- **New market / symbols:** edit the lists in `engine/universe.py` (named universes:
+  `us`, `asx`, `crypto`, `all`). The daily Action scans `all` by default
+  (`SCOUT_UNIVERSE` in the workflow).
 - **New signal:** add a detector in `engine/signals/technical.py` or
   `fundamental.py`; the conviction scorer and dashboard pick it up automatically.
 - **Tune conviction:** edit `THRESHOLD` and weights in `engine/signals/conviction.py`.
+- **Tune the cup-and-handle gates:** the `_CUP_*` constants at the top of the
+  detector in `engine/signals/technical.py` control how strict the pattern is.

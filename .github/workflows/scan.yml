@@ -10,6 +10,10 @@ on:
 permissions:
   contents: write          # allow committing results back
 
+concurrency:
+  group: daily-scan        # never let two scans race on the commit/push
+  cancel-in-progress: false
+
 jobs:
   scan:
     runs-on: ubuntu-latest
@@ -44,5 +48,8 @@ jobs:
             echo "no changes to commit"
           else
             git commit -m "data: daily scan $(date -u +%Y-%m-%d)"
-            git push
+            # rebase on any concurrent changes before pushing so the daily
+            # auto-commit can't get permanently wedged by a push race.
+            git pull --rebase --autostash origin "${GITHUB_REF_NAME}" || true
+            git push origin "HEAD:${GITHUB_REF_NAME}"
           fi

@@ -2,3 +2,4 @@ yfinance>=1.2.0
 pandas>=2.0
 numpy>=1.24
 pytest>=7.0
+pytrends>=4.9

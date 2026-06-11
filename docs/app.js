@@ -33,6 +33,7 @@
     viewSignals: document.getElementById("view-signals"),
     viewAI: document.getElementById("view-ai"),
     aiMeta: document.getElementById("ai-meta"),
+    aiPulse: document.getElementById("ai-pulse"),
     catchup: document.getElementById("catchup"),
     leaders: document.getElementById("leaders"),
     etfs: document.getElementById("etfs"),
@@ -878,6 +879,24 @@
       + "<br>benchmark SMH 3m " + fmtChg(aiData.benchmark && aiData.benchmark.ret_3m)
       + (hot.length ? '<br><span class="hotlist">hot: ' + hot.map(esc).join(" · ") + "</span>" : "");
 
+    // chain pulse: TWSE monthly revenue proxies (TSMC = chain demand)
+    var twse = (aiData.pulse && aiData.pulse.twse) || {};
+    var pulseChips = Object.keys(twse).map(function (code) {
+      var p = twse[code];
+      var month = p.month ? p.month.slice(2).replace("-", "/") : "";
+      return '<span class="pulse__chip"><b>' + esc(p.name || code) + "</b> "
+        + esc(month) + ' rev <span class="' + chgClass(p.yoy_pct) + '">'
+        + (p.yoy_pct >= 0 ? "+" : "") + p.yoy_pct.toFixed(1) + "% YoY</span>"
+        + '<span class="' + chgClass(p.ytd_yoy_pct) + '">'
+        + (p.ytd_yoy_pct >= 0 ? "+" : "") + p.ytd_yoy_pct.toFixed(1) + "% YTD</span></span>";
+    });
+    els.aiPulse.hidden = pulseChips.length === 0;
+    if (pulseChips.length) {
+      els.aiPulse.innerHTML = '<span class="pulse__label">Chain pulse</span>'
+        + pulseChips.join("")
+        + '<span class="pulse__src">monthly revenue · TWSE open data — the chain’s best free leading indicator</span>';
+    }
+
     // catch-up radar
     var cu = (aiData.radar && aiData.radar.catch_up) || [];
     els.catchup.innerHTML = cu.length ? cu.map(function (c) {
@@ -928,8 +947,13 @@
       if (h.median_rel_3m != null) stats.push("median RS3m " + fmtChg(h.median_rel_3m));
       if (h.pct_above_50dma != null) stats.push(Math.round(h.pct_above_50dma * 100) + "% above 50d");
       var rows = (l.companies || []).map(function (c, ci) {
+        var edgarTip = c.edgar
+          ? "SEC filings: " + c.edgar.form4_90d + " insider Form 4s in 90d"
+            + (c.edgar.last_8k ? " · last 8-K " + c.edgar.last_8k : "")
+          : "";
         return "<tr>"
-          + '<td><span class="sym">' + esc(c.symbol.replace("-USD", ""))
+          + '<td><span class="sym"' + (edgarTip ? ' title="' + esc(edgarTip) + '"' : "") + ">"
+          +   esc(c.symbol.replace("-USD", ""))
           +   (c.earnings ? '<span class="flag-e" title="Earnings ' + esc(c.earnings.date) + '">⚠E' + c.earnings.days + "d</span>" : "")
           + '</span><span class="nm">' + esc(c.note || c.name || "") + "</span></td>"
           + "<td>" + fmtCur(c.price, c.currency) + "</td>"
@@ -943,11 +967,22 @@
           + '<td><canvas class="lspark" data-l-spark="' + li + "-" + ci + '" width="72" height="24"></canvas></td>'
           + "</tr>";
       }).join("");
+      var att = l.attention || {};
+      var attChips = "";
+      function attChip(label, ratio, term) {
+        if (ratio == null) return "";
+        var cls = ratio >= 1.15 ? " att--hot" : ratio <= 0.85 ? " att--cool" : "";
+        return '<span class="att' + cls + '" title="' + esc('"' + term + '" vs its 12-month norm') + '">'
+          + label + " <b>×" + ratio.toFixed(1) + "</b></span>";
+      }
+      attChips += attChip("Search", att.trends_ratio, att.trends_term || "");
+      attChips += attChip("News", att.news_ratio, att.news_term || "");
       return '<section class="layer">'
         + '<div class="layer__head">'
         +   '<span class="layer__order">' + String(li + 1).padStart(2, "0") + "</span>"
         +   '<h3 class="layer__name">' + esc(l.name) + "</h3>"
         +   heatBadge(h)
+        +   attChips
         +   '<span class="layer__stats">' + stats.map(esc).join("  ·  ") + "</span>"
         + "</div>"
         + '<p class="layer__role">' + esc(l.role) + "</p>"

@@ -30,8 +30,9 @@ from typing import Dict, List, Optional
 import pandas as pd
 import yfinance as yf
 
-from engine.ai_chain import LAYERS, ETFS, BENCHMARK, all_company_symbols
+from engine.ai_chain import LAYERS, ETFS, BENCHMARK, THEMES, all_company_symbols
 from engine.adapters.yfinance_us import YFinanceUSAdapter
+from engine.attention import collect_attention
 from engine.signals.indicators import sma, rsi, roc, recent_high
 
 DEFAULT_OUT = "docs/data/ai_chain.json"
@@ -250,7 +251,24 @@ def _add_relative(row: Dict, bench: Dict) -> None:
             row[rel] = None
 
 
+def _us_tickers() -> List[str]:
+    """US-listed company tickers (EDGAR only covers SEC filers)."""
+    return [s for s in all_company_symbols()
+            if not s.endswith(".KS") and not s.endswith(".AX")
+            and not s.endswith("-USD")]
+
+
 def main() -> None:
+    # Free attention layer (Trends / GDELT / TWSE / EDGAR). Slow-ish and
+    # third-party flaky, so it runs first, fails soft, and can be skipped
+    # with SCOUT_ATTENTION=0 for quick local iterations.
+    attention = {"layers": {}, "pulse": {}, "edgar": {}}
+    if os.environ.get("SCOUT_ATTENTION", "1") != "0":
+        try:
+            attention = collect_attention(THEMES, _us_tickers())
+        except Exception as exc:
+            print("attention collection failed: {}".format(exc))
+
     bench_row = fetch_company(BENCHMARK)
     bench = {"symbol": BENCHMARK,
              "ret_1m": bench_row.get("ret_1m") if bench_row else None,
@@ -275,12 +293,16 @@ def main() -> None:
             row["note"] = c["note"]
             _add_relative(row, bench)
             row.update(score_company(row))
+            edgar = (attention.get("edgar") or {}).get(c["symbol"])
+            if edgar:
+                row["edgar"] = edgar
             companies.append(row)
         companies.sort(key=lambda r: -(r.get("ai_score") or 0))
         heat = layer_heat(companies)
         layers_out.append({"key": layer["key"], "name": layer["name"],
                            "role": layer["role"], "watch": layer["watch"],
-                           "heat": heat, "companies": companies})
+                           "heat": heat, "companies": companies,
+                           "attention": (attention.get("layers") or {}).get(layer["key"]) or {}})
 
     etfs_out = []
     for e in ETFS:
@@ -313,6 +335,7 @@ def main() -> None:
     payload = {
         "generated_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "benchmark": bench,
+        "pulse": attention.get("pulse") or {},
         "layers": layers_out,
         "etfs": etfs_out,
         "radar": {"catch_up": catch_up[:10], "leaders": leaders, "hot_layers": hot},

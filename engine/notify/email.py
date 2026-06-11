@@ -18,6 +18,10 @@ def build_digest(suggestions: List[Dict], scanned_at: str) -> Optional[Tuple[str
             s["symbol"], s["tier"].upper(), s["conviction"], s.get("price", 0.0)))
         if s.get("summary"):
             lines.append("    {}".format(s["summary"]))
+        plan = s.get("trade_plan")
+        if plan:
+            lines.append("    plan: entry {} / stop {} / targets {} -> {}  (R:R {})".format(
+                plan["entry"], plan["stop"], plan["target1"], plan["target2"], plan["rr"]))
         for r in s.get("reasons", []):
             lines.append("    - {}".format(r))
         lines.append("")

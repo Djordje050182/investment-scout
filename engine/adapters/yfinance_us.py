@@ -154,3 +154,16 @@ class YFinanceUSAdapter(DataAdapter):
                 print("skip {}: {}".format(sym, exc))
             time.sleep(self.throttle_sec)
         return out
+
+    def fetch_history(self, symbols: List[str]):
+        """Price history only (no .info), for benchmarks. {symbol: DataFrame}."""
+        out = {}
+        for sym in symbols:
+            try:
+                prices = yf.Ticker(sym).history(period=self.period, auto_adjust=False)
+                if prices is not None and len(prices) >= 30:
+                    out[sym] = prices
+            except Exception as exc:
+                print("skip benchmark {}: {}".format(sym, exc))
+            time.sleep(self.throttle_sec)
+        return out

@@ -185,7 +185,9 @@ body {
   white-space: nowrap;
   font-family: var(--mono);
   font-size: 12px;
-  animation: tape-scroll 80s linear infinite;
+  /* duration is set by JS from the track's real width (constant px/s),
+     so a longer symbol list never speeds the tape up */
+  animation: tape-scroll 600s linear infinite;
   will-change: transform;
 }
 .tape:hover .tape__track { animation-play-state: paused; }

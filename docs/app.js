@@ -353,6 +353,13 @@
     var row = syms.map(cell).join("");
     // duplicate for the seamless -50% loop
     els.tape.innerHTML = row + row;
+    // constant reading pace regardless of symbol count: ~28 px/s
+    requestAnimationFrame(function () {
+      var halfWidth = els.tape.scrollWidth / 2;
+      if (halfWidth > 0) {
+        els.tape.style.animationDuration = Math.max(60, Math.round(halfWidth / 28)) + "s";
+      }
+    });
   }
 
   // ---- Signal list ------------------------------------------------------

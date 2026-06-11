@@ -15,6 +15,7 @@ from typing import Dict
 
 import yfinance as yf
 
+from engine.ai_chain import all_company_symbols, all_etf_symbols
 from engine.signals.regime import BENCHMARKS
 from engine.universe import get_universe
 
@@ -50,7 +51,9 @@ def build_quotes(symbols) -> Dict[str, Dict]:
 
 def main() -> None:
     universe_name = os.environ.get("SCOUT_UNIVERSE", "all")
-    symbols = list(dict.fromkeys(get_universe(universe_name) + list(BENCHMARKS.keys())))
+    symbols = list(dict.fromkeys(
+        get_universe(universe_name) + list(BENCHMARKS.keys())
+        + all_company_symbols() + all_etf_symbols()))
     quotes = build_quotes(symbols)
     if not quotes:
         print("no quotes fetched; leaving existing quotes.json untouched")

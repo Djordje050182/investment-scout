@@ -42,11 +42,14 @@ jobs:
       - name: Update track record
         run: python -m engine.track_record
 
+      - name: Scan AI supply chain
+        run: python -m engine.ai_scan
+
       - name: Commit results
         run: |
           git config user.name "investment-scout-bot"
           git config user.email "bot@users.noreply.github.com"
-          git add docs/data/signals.json docs/data/history docs/data/track_record.json
+          git add docs/data/signals.json docs/data/history docs/data/track_record.json docs/data/ai_chain.json
           if git diff --staged --quiet; then
             echo "no changes to commit"
           else

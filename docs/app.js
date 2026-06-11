@@ -30,6 +30,13 @@
     gainers: document.getElementById("gainers"),
     losers: document.getElementById("losers"),
     breadth: document.getElementById("breadth"),
+    viewSignals: document.getElementById("view-signals"),
+    viewAI: document.getElementById("view-ai"),
+    aiMeta: document.getElementById("ai-meta"),
+    catchup: document.getElementById("catchup"),
+    leaders: document.getElementById("leaders"),
+    etfs: document.getElementById("etfs"),
+    aiLayers: document.getElementById("ai-layers"),
     watchlistPanel: document.getElementById("watchlist-panel"),
     watchlist: document.getElementById("watchlist"),
     recordPanel: document.getElementById("record-panel"),
@@ -783,6 +790,181 @@
     }, 5 * 60 * 1000);   // the Action refreshes every 30 min; poll lightly
   }
 
+  // ---- AI Supply Chain view ---------------------------------------------------
+  var aiData = null;
+  var aiLoading = false;
+
+  var CUR = { USD: "$", KRW: "₩", EUR: "€", GBP: "£", TWD: "NT$", JPY: "¥", AUD: "A$" };
+
+  function fmtCur(x, currency) {
+    if (x == null || isNaN(x)) return "—";
+    var n = Number(x);
+    var sym = CUR[currency || "USD"] || "$";
+    var opts = n >= 1000 ? { maximumFractionDigits: 0 }
+      : n >= 10 ? { minimumFractionDigits: 2, maximumFractionDigits: 2 }
+      : { minimumFractionDigits: 2, maximumFractionDigits: 4 };
+    return sym + n.toLocaleString(undefined, opts);
+  }
+
+  function switchView(view) {
+    els.viewSignals.hidden = view !== "signals";
+    els.viewAI.hidden = view !== "ai";
+    document.querySelectorAll(".viewtab").forEach(function (b) {
+      var active = b.dataset.view === view;
+      b.classList.toggle("is-active", active);
+      b.setAttribute("aria-pressed", String(active));
+    });
+    if (view === "ai") loadAI();
+    try { history.replaceState(null, "", view === "ai" ? "#ai" : "#"); } catch (e) {}
+  }
+
+  document.querySelectorAll(".viewtab").forEach(function (b) {
+    b.addEventListener("click", function () { switchView(b.dataset.view); });
+  });
+
+  function loadAI() {
+    if (aiData || aiLoading) return;
+    aiLoading = true;
+    fetch("./data/ai_chain.json", { cache: "no-store" })
+      .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
+      .then(function (j) { aiData = j; renderAI(); })
+      .catch(function (e) {
+        console.error("SCOUT: ai_chain.json failed", e);
+        aiLoading = false;
+        els.aiLayers.innerHTML = '<p class="radar__empty">AI chain data not available yet — it generates with the daily scan.</p>';
+      });
+  }
+
+  function drawSparkInto(canvas, closes, w, h) {
+    if (!canvas || !closes || closes.length < 2) return;
+    var dpr = window.devicePixelRatio || 1;
+    canvas.width = w * dpr; canvas.height = h * dpr;
+    var ctx = canvas.getContext("2d");
+    ctx.scale(dpr, dpr);
+    var vals = closes.filter(function (v) { return v != null; });
+    var min = Math.min.apply(null, vals), max = Math.max.apply(null, vals);
+    var range = max - min || 1;
+    var up = vals[vals.length - 1] >= vals[0];
+    ctx.strokeStyle = up ? "#2fd181" : "#f25f5c";
+    ctx.lineWidth = 1.3;
+    ctx.beginPath();
+    closes.forEach(function (v, i) {
+      if (v == null) return;
+      var x = (i / (closes.length - 1)) * (w - 2) + 1;
+      var y = h - 2 - ((v - min) / range) * (h - 4);
+      if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    });
+    ctx.stroke();
+  }
+
+  function heatBadge(heat) {
+    if (!heat || heat.score == null) return "";
+    return '<span class="heat heat--' + esc(heat.label) + '">'
+      + esc(heat.label) + " " + heat.score
+      + '<span class="heat__meter"><span class="heat__fill" style="width:' + heat.score + '%"></span></span>'
+      + "</span>";
+  }
+
+  function scorePill(v) {
+    if (v == null) return "—";
+    var cls = v >= 70 ? "sp-hi" : v >= 45 ? "sp-mid" : "sp-lo";
+    return '<span class="scorepill ' + cls + '">' + v + "</span>";
+  }
+
+  function renderAI() {
+    if (!aiData) return;
+    var hot = (aiData.radar && aiData.radar.hot_layers) || [];
+    els.aiMeta.innerHTML = "updated " + esc(fmtTime(aiData.generated_at))
+      + "<br>benchmark SMH 3m " + fmtChg(aiData.benchmark && aiData.benchmark.ret_3m)
+      + (hot.length ? '<br><span class="hotlist">hot: ' + hot.map(esc).join(" · ") + "</span>" : "");
+
+    // catch-up radar
+    var cu = (aiData.radar && aiData.radar.catch_up) || [];
+    els.catchup.innerHTML = cu.length ? cu.map(function (c) {
+      return '<div class="cu">'
+        + '<div class="cu__head"><span class="cu__sym">' + esc(c.symbol.replace("-USD", "")) + "</span>"
+        + '<span class="cu__layer">' + esc(c.layer) + "</span>"
+        + '<span class="cu__nums">'
+        +   "<span>gap <b>" + Math.round((c.gap_to_layer || 0) * 100) + "pp</b></span>"
+        +   "<span>growth <b>" + (c.growth_score != null ? c.growth_score : "—") + "</b></span>"
+        +   (c.fwd_pe ? "<span>fwd P/E <b>" + c.fwd_pe.toFixed(1) + "</b></span>" : "")
+        + "</span></div>"
+        + '<p class="cu__thesis">' + esc(c.thesis || "") + "</p>"
+        + "</div>";
+    }).join("") : '<p class="cu__empty">No hot-layer laggards right now — the chain is either evenly priced or cooling.</p>';
+
+    // leaders
+    var ld = (aiData.radar && aiData.radar.leaders) || [];
+    els.leaders.innerHTML = ld.length ? ld.map(function (l) {
+      return '<div class="ldr"><span class="ldr__sym">' + esc(l.symbol) + "</span>"
+        + '<span class="ldr__layer">' + esc(l.layer || "") + "</span>"
+        + '<span>' + fmtCur(l.price, l.currency) + "</span>"
+        + '<span class="' + chgClass(l.rel_3m) + '">' + fmtChg(l.rel_3m) + "</span>"
+        + '<span class="ldr__score">' + (l.ai_score != null ? l.ai_score : "—") + "</span></div>";
+    }).join("") : '<p class="cu__empty">No clear leaders at highs right now.</p>';
+
+    // ETFs
+    var etfs = aiData.etfs || [];
+    var head = '<div class="etf etf--head"><span>Ticker</span><span>What it holds</span>'
+      + "<span>Last</span><span>1M</span><span>3M</span><span>6M</span><span></span></div>";
+    els.etfs.innerHTML = head + etfs.map(function (e, i) {
+      return '<div class="etf"><span class="etf__sym">' + esc(e.symbol) + "</span>"
+        + '<span class="etf__note">' + esc(e.note || "") + "</span>"
+        + "<span>" + fmtCur(e.price) + "</span>"
+        + '<span class="' + chgClass(e.ret_1m) + '">' + fmtChg(e.ret_1m) + "</span>"
+        + '<span class="' + chgClass(e.ret_3m) + '">' + fmtChg(e.ret_3m) + "</span>"
+        + '<span class="' + chgClass(e.ret_6m) + '">' + fmtChg(e.ret_6m) + "</span>"
+        + '<canvas class="lspark" data-etf-spark="' + i + '" width="72" height="24"></canvas>'
+        + "</div>";
+    }).join("");
+    etfs.forEach(function (e, i) {
+      drawSparkInto(document.querySelector('[data-etf-spark="' + i + '"]'), e.spark, 72, 24);
+    });
+
+    // layers
+    els.aiLayers.innerHTML = (aiData.layers || []).map(function (l, li) {
+      var h = l.heat || {};
+      var stats = [];
+      if (h.median_rel_3m != null) stats.push("median RS3m " + fmtChg(h.median_rel_3m));
+      if (h.pct_above_50dma != null) stats.push(Math.round(h.pct_above_50dma * 100) + "% above 50d");
+      var rows = (l.companies || []).map(function (c, ci) {
+        return "<tr>"
+          + '<td><span class="sym">' + esc(c.symbol.replace("-USD", ""))
+          +   (c.earnings ? '<span class="flag-e" title="Earnings ' + esc(c.earnings.date) + '">⚠E' + c.earnings.days + "d</span>" : "")
+          + '</span><span class="nm">' + esc(c.note || c.name || "") + "</span></td>"
+          + "<td>" + fmtCur(c.price, c.currency) + "</td>"
+          + '<td class="' + chgClass(c.chg_1d) + '">' + fmtChg(c.chg_1d) + "</td>"
+          + '<td class="' + chgClass(c.ret_3m) + '">' + fmtChg(c.ret_3m) + "</td>"
+          + '<td class="' + chgClass(c.rel_3m) + '">' + fmtChg(c.rel_3m) + "</td>"
+          + "<td>" + (c.rev_growth != null ? fmtPct(c.rev_growth, true) : "—") + "</td>"
+          + "<td>" + (c.fwd_pe ? c.fwd_pe.toFixed(1) : "—") + "</td>"
+          + "<td>" + (c.upside != null ? fmtPct(c.upside, true) : "—") + "</td>"
+          + "<td>" + scorePill(c.ai_score) + "</td>"
+          + '<td><canvas class="lspark" data-l-spark="' + li + "-" + ci + '" width="72" height="24"></canvas></td>'
+          + "</tr>";
+      }).join("");
+      return '<section class="layer">'
+        + '<div class="layer__head">'
+        +   '<span class="layer__order">' + String(li + 1).padStart(2, "0") + "</span>"
+        +   '<h3 class="layer__name">' + esc(l.name) + "</h3>"
+        +   heatBadge(h)
+        +   '<span class="layer__stats">' + stats.map(esc).join("  ·  ") + "</span>"
+        + "</div>"
+        + '<p class="layer__role">' + esc(l.role) + "</p>"
+        + '<p class="layer__watch"><b>Watch:</b> ' + esc(l.watch) + "</p>"
+        + '<div class="ltable-wrap"><table class="ltable">'
+        + "<thead><tr><th>Company</th><th>Last</th><th>1D</th><th>3M</th><th>RS 3M</th>"
+        + "<th>Rev growth</th><th>Fwd P/E</th><th>Tgt upside</th><th>Score</th><th>90d</th></tr></thead>"
+        + "<tbody>" + rows + "</tbody></table></div>"
+        + "</section>";
+    }).join("");
+    (aiData.layers || []).forEach(function (l, li) {
+      (l.companies || []).forEach(function (c, ci) {
+        drawSparkInto(document.querySelector('[data-l-spark="' + li + "-" + ci + '"]'), c.spark, 72, 24);
+      });
+    });
+  }
+
   // ---- Filters --------------------------------------------------------------
   function wireSegmented(container, key) {
     if (!container) return;
@@ -818,6 +1000,7 @@
     startLive();
     pollQuotes();
     loadFearGreed();
+    if (location.hash === "#ai") switchView("ai");
   }
 
   wireSegmented(els.marketFilter, "market");

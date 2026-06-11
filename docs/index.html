@@ -46,6 +46,14 @@
 
   <main class="shell" id="main">
 
+    <!-- ===================== View switcher ===================== -->
+    <nav class="viewtabs" aria-label="Views">
+      <button type="button" class="viewtab is-active" data-view="signals" aria-pressed="true">Signals</button>
+      <button type="button" class="viewtab" data-view="ai" aria-pressed="false">AI&nbsp;Supply&nbsp;Chain</button>
+    </nav>
+
+    <div id="view-signals">
+
     <!-- ===================== Filters ===================== -->
     <section class="toolbar" aria-label="Filters">
       <div class="seggroup" id="market-filter" role="group" aria-label="Filter by market">
@@ -118,6 +126,53 @@
         <div id="edge"></div>
       </div>
     </section>
+
+    </div><!-- /view-signals -->
+
+    <!-- ===================== AI Supply Chain view ===================== -->
+    <div id="view-ai" hidden>
+      <section class="aihead">
+        <div class="aihead__lede">
+          <h2 class="aihead__title">The AI build-out, end to end</h2>
+          <p class="aihead__sub">Capex flows down this chain layer by layer — chips re-rated first,
+          then memory, then power. The heat map tracks where the rotation is <em>now</em>;
+          the radar hunts the layer it reaches <em>next</em>.</p>
+        </div>
+        <div class="aihead__meta" id="ai-meta"></div>
+      </section>
+
+      <section class="lower lower--airadar">
+        <div class="panel panel--gold" id="catchup-panel">
+          <h2 class="panel__title">Catch-up radar <span class="panel__sub">the Micron pattern: hot layer, laggard not yet re-rated</span></h2>
+          <div id="catchup"></div>
+        </div>
+        <div class="panel" id="leaders-panel">
+          <h2 class="panel__title">Chain leaders <span class="panel__sub">strength at highs across the chain</span></h2>
+          <div id="leaders"></div>
+        </div>
+      </section>
+
+      <section class="panel" id="etf-panel">
+        <h2 class="panel__title">Theme ETFs <span class="panel__sub">one-ticket exposure, from chips to power</span></h2>
+        <div id="etfs"></div>
+      </section>
+
+      <section id="ai-layers"></section>
+
+      <details class="fold" style="margin-top:14px">
+        <summary>How this view works</summary>
+        <p>Every company is scored 0–100: <strong>momentum</strong> (40% — relative strength vs
+        SMH, distance from 52-week high, trend), <strong>growth</strong> (35% — revenue growth,
+        earnings growth, gross margin), and <strong>value-for-growth</strong> (25% — forward P/E
+        against growth plus analyst target upside). <strong>Layer heat</strong> blends the layer's
+        median relative strength with its breadth. The <strong>catch-up radar</strong> encodes the
+        trade most people miss: when a layer turns hot, the names that haven't moved yet — but whose
+        growth and trend are intact and whose multiple is not the richest of their peers — are where
+        the rotation tends to go next. That was the Micron setup: AI demand had clearly reached
+        memory before MU's multiple did. Data refreshes daily with the scan; KRX names quote in ₩.
+        None of this is advice — it's a structured map for your own theses.</p>
+      </details>
+    </div><!-- /view-ai -->
 
     <!-- ===================== About / methodology ===================== -->
     <section class="about" id="about">

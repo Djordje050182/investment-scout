@@ -35,6 +35,14 @@ and **live crypto prices streamed from Binance** in the browser.
   shows relative strength vs its market benchmark (SPY / ASX 200 / BTC).
 - A star on any signal pins it to a localStorage watchlist that tracks the
   price since you starred it.
+- An **AI Supply Chain** view (toggle at the top) maps the AI build-out as a
+  10-layer investable chain — silicon IP → chips → memory → foundry →
+  equipment → networking → servers/cooling → power → data centres → models —
+  with ~60 companies and 10 theme ETFs. Each layer gets a heat score (median
+  relative strength vs SMH + breadth) and each company a momentum/growth/value
+  score. The **catch-up radar** encodes the Micron pattern: a hot layer whose
+  healthy, cheap laggards haven't re-rated yet. `python -m engine.ai_scan`
+  regenerates it; it also runs in the daily Action.
 - The static site in `docs/` (GitHub Pages) renders all of it. Candlestick
   charts use TradingView's lightweight-charts via CDN.
 
@@ -46,6 +54,8 @@ engine/
   refresh_quotes.py      intraday quote refresh (quotes.json)
   track_record.py        score past leads vs forward returns (track_record.json)
   backtest.py            walk-forward detector backtest (backtest.json)
+  ai_chain.py            AI supply-chain taxonomy (10 layers, ~60 names, ETFs)
+  ai_scan.py             scores the chain, layer heat, catch-up radar (ai_chain.json)
   universe.py            symbol lists (us / asx / crypto / all)
   adapters/              data sources (yfinance)
   signals/

@@ -56,6 +56,8 @@ engine/
   backtest.py            walk-forward detector backtest (backtest.json)
   ai_chain.py            AI supply-chain taxonomy (10 layers, ~60 names, ETFs)
   ai_scan.py             scores the chain, layer heat, catch-up radar (ai_chain.json)
+  attention.py           free alt-data: Google Trends, GDELT news volume,
+                         TWSE monthly revenue (TSMC pulse), SEC EDGAR filings
   universe.py            symbol lists (us / asx / crypto / all)
   adapters/              data sources (yfinance)
   signals/

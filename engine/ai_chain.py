@@ -199,6 +199,22 @@ ETFS: List[Dict] = [
 # Relative-strength benchmark for the whole chain view.
 BENCHMARK = "SMH"
 
+# Search / news theme per layer, feeding the free attention collectors
+# (Google Trends + GDELT). One term each — quotas are tight and a single
+# well-chosen phrase beats a basket of noisy ones.
+THEMES: Dict[str, Dict[str, str]] = {
+    "silicon_ip": {"trends": "chip design AI", "news": "semiconductor IP licensing"},
+    "chip_design": {"trends": "AI chips", "news": "AI accelerator chips"},
+    "memory_storage": {"trends": "HBM memory", "news": "high-bandwidth memory"},
+    "foundry": {"trends": "TSMC", "news": "TSMC advanced packaging"},
+    "equipment_materials": {"trends": "EUV lithography", "news": "semiconductor equipment orders"},
+    "networking_optics": {"trends": "optical transceiver", "news": "AI cluster networking optics"},
+    "servers_cooling": {"trends": "liquid cooling data center", "news": "data center liquid cooling"},
+    "power_energy": {"trends": "data center power", "news": "data center power shortage"},
+    "datacenter_cloud": {"trends": "GPU cloud", "news": "GPU cloud capacity"},
+    "models_apps": {"trends": "AI agents", "news": "enterprise AI agents revenue"},
+}
+
 
 def all_company_symbols() -> List[str]:
     """Every company ticker across all layers (deduped, order preserved)."""

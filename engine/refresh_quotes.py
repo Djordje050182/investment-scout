@@ -49,11 +49,17 @@ def build_quotes(symbols) -> Dict[str, Dict]:
     return quotes
 
 
+# Extra tickers the dashboard quotes outside the scan universes:
+# the Strategy (MicroStrategy) bitcoin-treasury family for the Crystal Ball,
+# and the broad-market core ETF it recommends.
+EXTRA_QUOTES = ["MSTR", "STRK", "STRF", "STRD", "STRC", "VOO"]
+
+
 def main() -> None:
     universe_name = os.environ.get("SCOUT_UNIVERSE", "all")
     symbols = list(dict.fromkeys(
         get_universe(universe_name) + list(BENCHMARKS.keys())
-        + all_company_symbols() + all_etf_symbols()))
+        + all_company_symbols() + all_etf_symbols() + EXTRA_QUOTES))
     quotes = build_quotes(symbols)
     if not quotes:
         print("no quotes fetched; leaving existing quotes.json untouched")

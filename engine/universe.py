@@ -25,6 +25,8 @@ _US = [
     "LOW", "TGT",
     # industrials / energy / materials
     "CAT", "DE", "GE", "LMT", "XOM", "CVX", "LIN",
+    # bitcoin-treasury (leveraged BTC proxy; volatile)
+    "MSTR",
 ]
 
 # Large-cap ASX names (.AX suffix) plus quality growth.

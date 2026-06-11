@@ -32,6 +32,17 @@
     breadth: document.getElementById("breadth"),
     viewSignals: document.getElementById("view-signals"),
     viewAI: document.getElementById("view-ai"),
+    viewCrystal: document.getElementById("view-crystal"),
+    meter: document.getElementById("buy-meter"),
+    meterNum: document.getElementById("meter-num"),
+    meterLabel: document.getElementById("meter-label"),
+    meterFill: document.getElementById("meter-fill"),
+    meterWhy: document.getElementById("meter-why"),
+    cbAmount: document.getElementById("cb-amount"),
+    cbHorizon: document.getElementById("cb-horizon"),
+    cbRisk: document.getElementById("cb-risk"),
+    cbOutput: document.getElementById("cb-output"),
+    strategyFamily: document.getElementById("strategy-family"),
     aiMeta: document.getElementById("ai-meta"),
     aiPulse: document.getElementById("ai-pulse"),
     catchup: document.getElementById("catchup"),
@@ -71,6 +82,102 @@
     macd_bull_cross: "MACD Cross",
     oversold_reversal: "Oversold Reversal",
   };
+
+  // ---- Plain-English term explainers --------------------------------------
+  var GLOSS = {
+    conviction: ["Conviction score", "Our 0–100 confidence that this is a lead worth researching. It blends the chart picture (technical) with the health of the business (fundamental). Higher = stronger lead. It is never a guarantee — think of it as how loudly the data is raising its hand."],
+    tier: ["Signal tier", "WHY a name surfaced. Technical = the price chart looks good. Fundamental = the business looks good. High Conviction = both at once — a good company AND a sensible-looking moment, our top shelf."],
+    both: ["High Conviction", "The chart and the business both look strong at the same time. Historically the best kind of setup: a quality company at a technically sensible moment."],
+    technical: ["Technical signal", "Surfaced because of the price chart alone — patterns in price and volume. Says nothing about whether the business is good."],
+    fundamental: ["Fundamental signal", "Surfaced because the business looks high-quality and reasonably priced — even if the chart isn't doing anything exciting yet."],
+    rsi: ["RSI (momentum gauge)", "A 0–100 dial of how fast price has been rising or falling. Around 50 = calm. 50–70 = healthy climb. Above 70 = possibly overheated (be careful buying). Below 30 = beaten up (sometimes a bounce coming)."],
+    macd: ["MACD", "A trend-change detector that compares a fast moving average with a slow one. When the fast line crosses above the slow one, momentum may be turning up — an early (but fallible) green shoot."],
+    adx: ["ADX (trend strength)", "Measures how STRONG a trend is, ignoring direction. Above 25 = a real trend is underway. Below 20 = sideways chop where trend-following tends to fail."],
+    stoch: ["Stochastic %K", "Where today's price sits inside its recent range, 0–100. Near 100 = pressing the top of the range; near 0 = scraping the bottom."],
+    atr: ["ATR (daily wiggle)", "The average size of this asset's daily move — its noise level. We size stops and targets in ATRs so they sit outside normal wiggle. Higher ATR = bumpier ride."],
+    vol_ratio: ["Volume ratio", "Today's trading volume versus the recent average. 2× means twice the usual shares changed hands — big volume behind a move suggests real conviction, not noise."],
+    sma50: ["50-day average", "The average price of the last ~10 weeks, drawn as a smooth line. Price above a rising 50-day = healthy medium-term trend. Traders often watch it as a 'dip-buying' level."],
+    sma200: ["200-day average", "The average price of the last ~10 months — the long-term health line. Above it: long-term uptrend. Below it: something is broken. Many big investors won't buy below it."],
+    high52w: ["Distance from 52-week high", "How far price sits below its best level of the past year. Near the high = strength (strong stocks make new highs). Far below = either damaged or a potential recovery story."],
+    rs: ["Relative strength (RS)", "This asset's return MINUS the market's return over the same period. +10% RS means it beat the benchmark by 10 points. Winners tend to keep beating; chronic laggards lag for a reason."],
+    entry: ["Entry", "The price the plan is framed around — roughly where the asset trades now."],
+    stop: ["Stop (exit if wrong)", "The pre-agreed 'I was wrong' price. If it falls here, the idea is invalidated and the plan says get out and keep the loss small. Set below normal daily wiggle so noise alone doesn't knock you out."],
+    target: ["Targets", "Where the plan suggests taking profit. Target 1 is the modest first milestone; Target 2 is the fuller move if the pattern plays out."],
+    rr: ["Risk : Reward (R:R)", "How much you stand to make at Target 1 versus lose at the stop. 2.0 means risking $1 to potentially make $2. Below 1.0 the math is against you."],
+    cup_and_handle: ["Cup & Handle pattern", "Price carves a rounded dip and recovery (the cup), pauses with a small dip (the handle), then often breaks higher. The rounded shape suggests patient accumulation rather than panic."],
+    breakout: ["Breakout", "Price pushes above a ceiling it kept failing at — on heavy volume. The ceiling-breakers often keep going, because everyone who wanted to sell there already has."],
+    uptrend: ["Uptrend", "Price above its rising 50- and 200-day averages — the simplest definition of 'going up'. Trends persist more often than they reverse."],
+    golden_cross: ["Golden cross", "The 50-day average crossing above the 200-day — a classic 'the tide has turned' signal that often marks the early innings of a long advance."],
+    bull_flag: ["Bull flag", "A sharp rise (the pole) followed by a tight, calm drift (the flag). Often a rest stop, not a top — the move frequently continues by about the length of the pole."],
+    double_bottom: ["Double bottom", "Price hits a low, bounces, retests the same low and holds — a 'W' shape. Two failures to go lower suggests sellers are exhausted."],
+    bollinger_squeeze: ["Volatility squeeze", "The price's recent range has compressed to unusually tight levels. Quiet periods store energy — big moves often follow, in either direction."],
+    obv_accumulation: ["Volume accumulation (OBV)", "Volume flowing in on up-days faster than out on down-days — a footprint of quiet, persistent buying that sometimes shows up before price moves."],
+    pullback_to_trend: ["Pullback to trend", "A strong stock dips back to its 50-day average and steadies — the 'buy quality on a dip' setup, with the long-term trend intact."],
+    oversold_reversal: ["Oversold bounce", "A long-term uptrend gets washed out short-term (RSI under 35), then hooks back up. Dips in strong stocks tend to get bought."],
+    high_52w_momentum: ["Near 52-week highs", "Strength begets strength: stocks pressing their yearly highs with a real trend behind them tend to keep making new highs."],
+    macd_bull_cross: ["MACD bullish cross", "The momentum gauge just flipped positive. Fired alone it's weak — we treat it as confirmation, not a reason to buy."],
+    quality: ["Quality", "How good the business is at making money safely: high returns on shareholders' capital, fat margins, low debt, real cash flow."],
+    value: ["Value", "Whether the price is reasonable for what you get — mainly the P/E ratio. A wonderful company at a silly price is still a bad deal."],
+    moat: ["Moat", "A durable edge competitors can't easily copy — a brand, network effects, switching costs. Warren Buffett's favourite word. Moats keep profits fat."],
+    management: ["Management", "Whether the people running it act like owners — we proxy it with share buybacks (shrinking share count = your slice grows)."],
+    backing: ["Backing", "How much of the company big professional funds (and insiders) own. Heavy institutional ownership = the smart money has done its homework."],
+    strength: ["Business strength", "One number blending quality, moat and value — how solid the underlying company is, separate from what the stock price is doing."],
+    fwd_pe: ["Forward P/E", "Price divided by NEXT year's expected profit — how many years of future earnings you're paying upfront. Lower can mean cheap… or that the market doubts the forecast."],
+    rev_growth: ["Revenue growth", "How fast sales grew versus a year ago. Sustained growth is the raw fuel of every great stock story."],
+    upside: ["Analyst target upside", "How far Wall Street's average price target sits above today's price. Take with salt — analysts herd and chase — but big gaps are worth noticing."],
+    ai_score: ["AI-chain score", "Our 0–100 blend for chain companies: momentum (40%), growth (35%), value-for-growth (25%). A ranking aid, not a verdict."],
+    layer_heat: ["Layer heat", "How hot this slice of the supply chain is right now: median outperformance vs the chip index plus how many members are in uptrends. The AI build-out re-rates layer by layer — heat shows where the wave is."],
+    catchup: ["Catch-up radar", "The pattern behind the great Micron trade: a layer turns hot, but one healthy member hasn't re-rated yet — growth intact, trend intact, not expensive vs peers. Rotation often reaches it next. Often ≠ always."],
+    breadth: ["Breadth", "What fraction of everything we scan is above its own 50-day average. High breadth = a broad, healthy advance. Low breadth = a few generals, no army."],
+    regime: ["Market regime", "The big-picture weather: Risk-On (benchmarks trending up, broad participation), Risk-Off (downtrends, hide), or Neutral. The same stock setup works far better in a rising tide."],
+    fng: ["Fear & Greed index", "A 0–100 crowd-mood gauge for crypto. Extreme fear (low) historically marked better buying moments than extreme greed (high). A contrarian thermometer."],
+    etf: ["ETF", "A single ticker that holds a whole basket of investments — one purchase, instant diversification, tiny fees. The sane default for most people most of the time."],
+    preferred: ["Preferred share", "A hybrid between a share and a bond: it pays a fixed dividend and has priority over common stock, but usually little upside beyond that income. You're lending money, dressed as a share."],
+    btc_treasury: ["Bitcoin treasury company", "A listed company whose main asset is a pile of bitcoin, often bought with borrowed money. The stock behaves like turbo-charged bitcoin — both directions."],
+    neocloud: ["Neocloud", "A young cloud company that rents out raw AI computing power (GPUs) by the hour. Hypergrowth, heavy debt, big promises — high octane in both directions."],
+    hyperscaler: ["Hyperscaler", "The giant clouds — Microsoft, Google, Amazon, Meta, Oracle. Their capital spending (hundreds of billions a year) funds the entire AI supply chain beneath them."],
+    hbm: ["HBM (high-bandwidth memory)", "Special stacked memory chips bolted right next to AI processors so data arrives fast enough. The big 2025–26 bottleneck — demand outran supply and prices flew. Made by Micron, SK hynix, Samsung."],
+    euv: ["EUV lithography", "The most precise machines ever built — they draw chip features with extreme ultraviolet light. One company on Earth makes them (ASML). No EUV, no advanced AI chips."],
+    foundry: ["Foundry", "A factory that manufactures chips designed by others. TSMC makes the chips for Nvidia, AMD, Apple and nearly everyone — the single most indispensable company in the chain."],
+    meter: ["Today's conditions meter", "A 0–100 read on whether TODAY is a friendly day to put new money to work, blending: market regime, breadth, benchmark momentum, and the quality of today's signals. It measures conditions, not your situation — and it is absolutely not a promise."],
+    horizon: ["Time horizon", "When you might genuinely need this money back. The single most important input: money needed within a year should never ride in volatile assets, because you can be forced to sell at the worst moment."],
+    risk_appetite: ["Risk appetite", "Honestly: how far can your investment fall before you panic-sell? Careful = a 15% drop would hurt. Balanced = can sit through 25%. Bold = can watch 40%+ vanish and not flinch. Be honest — overestimating this is the #1 amateur mistake."],
+    spark: ["Sparkline", "A tiny 90-day price chart. Green = higher than 90 days ago, red = lower. Shape at a glance."],
+    search_heat: ["Search interest (Google Trends)", "How often people are googling this layer's theme versus its 12-month normal. ×2.0 = double the usual curiosity. Attention often shows up in search before it shows up in price."],
+    news_heat: ["News volume (GDELT)", "How much the world's news is covering this theme versus its recent baseline, from a free global news database. A sudden ×3 means the story is breaking out of the trade press into the mainstream."],
+    pulse: ["Chain pulse", "TSMC and Foxconn report revenue EVERY MONTH (most companies only manage quarterly). Since nearly every AI chip passes through them, their monthly growth is the closest thing to a real-time meter on the whole chain's demand."],
+    setup: ["Setup", "The strongest chart pattern currently present, with small credit for extra confirming patterns. The 'is there actually something to act on?' score."],
+    trend: ["Trend", "The backdrop: moving-average structure and trend strength. Good setups in bad trends fail more."],
+    momentum: ["Momentum", "Shorter-term push: RSI, MACD and the last month's pace."],
+    volume_sub: ["Volume", "Whether trading activity supports the move — recent volume vs normal, and whether volume flows in on up-days."],
+  };
+
+  function termAttr(key) { return GLOSS[key] ? ' data-term="' + key + '"' : ""; }
+  function termWrap(label, key) {
+    if (!GLOSS[key]) return esc(label);
+    return '<button type="button" class="t" data-term="' + key + '">' + esc(label) + "</button>";
+  }
+
+  var pop = {
+    root: document.getElementById("termpop"),
+    title: document.getElementById("termpop-title"),
+    body: document.getElementById("termpop-body"),
+  };
+  function openTerm(key) {
+    var def = GLOSS[key];
+    if (!def) return;
+    pop.title.textContent = def[0];
+    pop.body.textContent = def[1];
+    pop.root.hidden = false;
+  }
+  document.addEventListener("click", function (e) {
+    if (e.target.closest("[data-termpop-close]")) { pop.root.hidden = true; return; }
+    var t = e.target.closest("[data-term]");
+    if (t) { e.preventDefault(); e.stopPropagation(); openTerm(t.dataset.term); }
+  }, true);
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape") pop.root.hidden = true;
+  });
 
   // ---- Watchlist (localStorage) -----------------------------------------
   var WL_KEY = "scout_watchlist_v1";
@@ -324,8 +431,9 @@
   }
 
   // ---- Detail panel -----------------------------------------------------
-  function indCell(key, val, hint, cls) {
-    return '<div class="ind"><span class="ind__k">' + esc(key) + "</span>"
+  function indCell(key, val, hint, cls, termKey) {
+    return '<div class="ind"><span class="ind__k">'
+      + (termKey ? termWrap(key, termKey) : esc(key)) + "</span>"
       + '<span class="ind__v ' + (cls || "") + '">' + val + "</span>"
       + (hint ? '<span class="ind__hint">' + esc(hint) + "</span>" : "")
       + "</div>";
@@ -338,44 +446,45 @@
     if (snap.rsi14 != null) {
       var rcls = snap.rsi14 > 70 ? "warn" : snap.rsi14 >= 50 ? "up" : snap.rsi14 < 35 ? "down" : "";
       var rhint = snap.rsi14 > 70 ? "overbought" : snap.rsi14 >= 50 ? "bullish" : snap.rsi14 < 35 ? "oversold" : "neutral";
-      cells.push(indCell("RSI 14", snap.rsi14.toFixed(0), rhint, rcls));
+      cells.push(indCell("RSI 14", snap.rsi14.toFixed(0), rhint, rcls, "rsi"));
     }
     if (snap.adx14 != null) {
-      cells.push(indCell("ADX 14", snap.adx14.toFixed(0), snap.adx14 >= 25 ? "trending" : "chop", snap.adx14 >= 25 ? "up" : ""));
+      cells.push(indCell("ADX 14", snap.adx14.toFixed(0), snap.adx14 >= 25 ? "trending" : "chop", snap.adx14 >= 25 ? "up" : "", "adx"));
     }
     if (snap.macd_hist != null) {
       cells.push(indCell("MACD hist", (snap.macd_hist >= 0 ? "+" : "") + (snap.macd_hist * 100).toFixed(2),
-        "% of price", snap.macd_hist >= 0 ? "up" : "down"));
+        "% of price", snap.macd_hist >= 0 ? "up" : "down", "macd"));
     }
     if (snap.stoch_k != null) {
-      cells.push(indCell("Stoch %K", snap.stoch_k.toFixed(0), snap.stoch_k > 80 ? "overbought" : snap.stoch_k < 20 ? "oversold" : "", ""));
+      cells.push(indCell("Stoch %K", snap.stoch_k.toFixed(0), snap.stoch_k > 80 ? "overbought" : snap.stoch_k < 20 ? "oversold" : "", "", "stoch"));
     }
     if (snap.atr_pct != null) {
-      cells.push(indCell("ATR", fmtPct(snap.atr_pct), "daily range"));
+      cells.push(indCell("ATR", fmtPct(snap.atr_pct), "daily range", "", "atr"));
     }
     if (snap.vol_ratio != null) {
-      cells.push(indCell("Vol ×20d", snap.vol_ratio.toFixed(1) + "×", "", snap.vol_ratio >= 1.5 ? "up" : ""));
+      cells.push(indCell("Vol ×20d", snap.vol_ratio.toFixed(1) + "×", "", snap.vol_ratio >= 1.5 ? "up" : "", "vol_ratio"));
     }
     if (snap.sma50_dist != null) {
-      cells.push(indCell("vs 50d", fmtPct(snap.sma50_dist, true), "", chgClass(snap.sma50_dist)));
+      cells.push(indCell("vs 50d", fmtPct(snap.sma50_dist, true), "", chgClass(snap.sma50_dist), "sma50"));
     }
     if (snap.sma200_dist != null) {
-      cells.push(indCell("vs 200d", fmtPct(snap.sma200_dist, true), "", chgClass(snap.sma200_dist)));
+      cells.push(indCell("vs 200d", fmtPct(snap.sma200_dist, true), "", chgClass(snap.sma200_dist), "sma200"));
     }
     if (snap.high_52w_dist != null) {
-      cells.push(indCell("vs 52w high", fmtPct(snap.high_52w_dist, true), "", snap.high_52w_dist > -0.05 ? "up" : ""));
+      cells.push(indCell("vs 52w high", fmtPct(snap.high_52w_dist, true), "", snap.high_52w_dist > -0.05 ? "up" : "", "high52w"));
     }
     if (snap.ret_1m != null) cells.push(indCell("1M", fmtPct(snap.ret_1m, true), "", chgClass(snap.ret_1m)));
     if (snap.ret_3m != null) cells.push(indCell("3M", fmtPct(snap.ret_3m, true), "", chgClass(snap.ret_3m)));
     if (snap.ret_6m != null) cells.push(indCell("6M", fmtPct(snap.ret_6m, true), "", chgClass(snap.ret_6m)));
-    if (snap.rel_1m != null) cells.push(indCell("RS 1M", fmtPct(snap.rel_1m, true), "vs " + benchName, chgClass(snap.rel_1m)));
-    if (snap.rel_3m != null) cells.push(indCell("RS 3M", fmtPct(snap.rel_3m, true), "vs " + benchName, chgClass(snap.rel_3m)));
+    if (snap.rel_1m != null) cells.push(indCell("RS 1M", fmtPct(snap.rel_1m, true), "vs " + benchName, chgClass(snap.rel_1m), "rs"));
+    if (snap.rel_3m != null) cells.push(indCell("RS 3M", fmtPct(snap.rel_3m, true), "vs " + benchName, chgClass(snap.rel_3m), "rs"));
     return cells.join("");
   }
 
-  function barRow(label, val, cls) {
+  function barRow(label, val, cls, termKey) {
     var v = Math.round(Math.max(0, Math.min(1, Number(val) || 0)) * 100);
-    return '<div class="bar"><span class="bar__k">' + esc(label) + "</span>"
+    return '<div class="bar"><span class="bar__k">'
+      + (termKey ? termWrap(label, termKey) : esc(label)) + "</span>"
       + '<span class="bar__track"><span class="bar__fill ' + (cls || "") + '" style="width:' + v + '%"></span></span>'
       + '<span class="bar__v">' + v + "</span></div>";
   }
@@ -384,11 +493,11 @@
     if (!plan) return "";
     return '<div class="dsec"><h3 class="dsec__title">Trade plan</h3>'
       + '<div class="plan">'
-      + '<div class="plan__cell"><span class="plan__k">Entry</span><span class="plan__v">' + plan.entry + "</span></div>"
-      + '<div class="plan__cell"><span class="plan__k">Stop</span><span class="plan__v stop">' + plan.stop + "</span></div>"
-      + '<div class="plan__cell"><span class="plan__k">Target 1</span><span class="plan__v target">' + plan.target1 + "</span></div>"
-      + '<div class="plan__cell"><span class="plan__k">Target 2</span><span class="plan__v target">' + plan.target2 + "</span></div>"
-      + '<div class="plan__cell"><span class="plan__k">R : R</span><span class="plan__v rr">' + plan.rr + "</span></div>"
+      + '<div class="plan__cell"><span class="plan__k">' + termWrap("Entry", "entry") + '</span><span class="plan__v">' + plan.entry + "</span></div>"
+      + '<div class="plan__cell"><span class="plan__k">' + termWrap("Stop", "stop") + '</span><span class="plan__v stop">' + plan.stop + "</span></div>"
+      + '<div class="plan__cell"><span class="plan__k">' + termWrap("Target 1", "target") + '</span><span class="plan__v target">' + plan.target1 + "</span></div>"
+      + '<div class="plan__cell"><span class="plan__k">' + termWrap("Target 2", "target") + '</span><span class="plan__v target">' + plan.target2 + "</span></div>"
+      + '<div class="plan__cell"><span class="plan__k">' + termWrap("R : R", "rr") + '</span><span class="plan__v rr">' + plan.rr + "</span></div>"
       + '<div class="plan__note">Stop: tighter of 20-day swing low / 2×ATR. Target 2: ' + esc(plan.method)
       + ". Levels frame the lead — not advice.</div>"
       + "</div></div>";
@@ -408,8 +517,8 @@
       return "<li><span>" + esc(h.name) + '</span><span class="pct">' + (h.pct * 100).toFixed(1) + "%</span></li>";
     }).join("");
     var scoreBars = "";
-    if (typeof c.strength_score === "number") scoreBars += barRow("Strength", c.strength_score / 100, "");
-    if (typeof c.backing_score === "number") scoreBars += barRow("Backing", c.backing_score / 100, "");
+    if (typeof c.strength_score === "number") scoreBars += barRow("Strength", c.strength_score / 100, "", "strength");
+    if (typeof c.backing_score === "number") scoreBars += barRow("Backing", c.backing_score / 100, "", "backing");
     return '<div class="dsec"><h3 class="dsec__title">Company</h3>'
       + (meta ? '<p class="cometa">' + meta + "</p>" : "")
       + (c.description ? '<p class="codesc">' + esc(c.description) + "</p>" : "")
@@ -437,7 +546,7 @@
       + '<div class="dhead">'
       +   '<div class="dhead__id">'
       +     '<h2 class="dhead__sym">' + esc(s.symbol.replace("-USD", ""))
-      +       '<span class="tierbadge tierbadge--' + esc(s.tier) + '">' + esc(TIER_LABEL[s.tier] || s.tier) + "</span>"
+      +       '<span class="tierbadge tierbadge--' + esc(s.tier) + '" data-term="' + esc(s.tier) + '">' + esc(TIER_LABEL[s.tier] || s.tier) + "</span>"
       +       starBtn(s.symbol, s.market, p.px)
       +     "</h2>"
       +     '<p class="dhead__name">' + esc(name || s.market)
@@ -453,19 +562,19 @@
       + (s.summary ? '<p class="dsummary">' + esc(s.summary) + "</p>" : "")
       + '<div class="chartbox"><div id="chart"></div>'
       +   '<div class="chartlegend"><i class="lg-c">Price</i><i class="lg-50">SMA 50</i><i class="lg-200">SMA 200</i>'
-      +   '<i style="margin-left:auto">Conviction ' + s.conviction + " / 100</i></div>"
+      +   '<i style="margin-left:auto" data-term="conviction" class="t">Conviction ' + s.conviction + " / 100</i></div>"
       + "</div>"
       + planHtml(s.trade_plan)
       + '<div class="dsec"><h3 class="dsec__title">Indicators</h3><div class="igrid">' + indicatorGrid(s.snapshot, s.market) + "</div></div>"
       + (patterns ? '<div class="dsec"><h3 class="dsec__title">Patterns</h3><div class="ptags">' + patterns + "</div></div>" : "")
       + '<div class="dsec"><h3 class="dsec__title">Technical composition</h3><div class="bars">'
-      +   barRow("Setup", d.setup, "tech") + barRow("Trend", d.trend, "tech")
-      +   barRow("Momentum", d.momentum, "tech") + barRow("Volume", d.volume, "tech")
+      +   barRow("Setup", d.setup, "tech", "setup") + barRow("Trend", d.trend, "tech", "trend")
+      +   barRow("Momentum", d.momentum, "tech", "momentum") + barRow("Volume", d.volume, "tech", "volume_sub")
       + "</div></div>"
       + (s.market !== "Crypto"
         ? '<div class="dsec"><h3 class="dsec__title">Fundamentals</h3><div class="bars">'
-          + barRow("Quality", f.quality, "fund") + barRow("Moat", f.moat, "fund")
-          + barRow("Value", f.value, "fund") + barRow("Management", f.management, "fund")
+          + barRow("Quality", f.quality, "fund", "quality") + barRow("Moat", f.moat, "fund", "moat")
+          + barRow("Value", f.value, "fund", "value") + barRow("Management", f.management, "fund", "management")
           + "</div></div>"
         : "")
       + (reasons ? '<div class="dsec"><h3 class="dsec__title">Why it surfaced</h3><ul class="rlist">' + reasons + "</ul></div>" : "")
@@ -810,13 +919,17 @@
   function switchView(view) {
     els.viewSignals.hidden = view !== "signals";
     els.viewAI.hidden = view !== "ai";
+    els.viewCrystal.hidden = view !== "crystal";
     document.querySelectorAll(".viewtab").forEach(function (b) {
       var active = b.dataset.view === view;
       b.classList.toggle("is-active", active);
       b.setAttribute("aria-pressed", String(active));
     });
-    if (view === "ai") loadAI();
-    try { history.replaceState(null, "", view === "ai" ? "#ai" : "#"); } catch (e) {}
+    if (view === "ai" || view === "crystal") loadAI();   // crystal uses chain data too
+    if (view === "crystal") renderCrystal();
+    try {
+      history.replaceState(null, "", view === "ai" ? "#ai" : view === "crystal" ? "#crystal" : "#");
+    } catch (e) {}
   }
 
   document.querySelectorAll(".viewtab").forEach(function (b) {
@@ -828,7 +941,7 @@
     aiLoading = true;
     fetch("./data/ai_chain.json", { cache: "no-store" })
       .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
-      .then(function (j) { aiData = j; renderAI(); })
+      .then(function (j) { aiData = j; renderAI(); renderCrystal(); })
       .catch(function (e) {
         console.error("SCOUT: ai_chain.json failed", e);
         aiLoading = false;
@@ -860,7 +973,7 @@
 
   function heatBadge(heat) {
     if (!heat || heat.score == null) return "";
-    return '<span class="heat heat--' + esc(heat.label) + '">'
+    return '<span class="heat heat--' + esc(heat.label) + '" data-term="layer_heat">'
       + esc(heat.label) + " " + heat.score
       + '<span class="heat__meter"><span class="heat__fill" style="width:' + heat.score + '%"></span></span>'
       + "</span>";
@@ -892,7 +1005,7 @@
     });
     els.aiPulse.hidden = pulseChips.length === 0;
     if (pulseChips.length) {
-      els.aiPulse.innerHTML = '<span class="pulse__label">Chain pulse</span>'
+      els.aiPulse.innerHTML = '<span class="pulse__label t" data-term="pulse">Chain pulse</span>'
         + pulseChips.join("")
         + '<span class="pulse__src">monthly revenue · TWSE open data — the chain’s best free leading indicator</span>';
     }
@@ -972,7 +1085,7 @@
       function attChip(label, ratio, term) {
         if (ratio == null) return "";
         var cls = ratio >= 1.15 ? " att--hot" : ratio <= 0.85 ? " att--cool" : "";
-        return '<span class="att' + cls + '" title="' + esc('"' + term + '" vs its 12-month norm') + '">'
+        return '<span class="att' + cls + '" data-term="' + (label === "Search" ? "search_heat" : "news_heat") + '" title="' + esc('"' + term + '" vs its 12-month norm') + '">'
           + label + " <b>×" + ratio.toFixed(1) + "</b></span>";
       }
       attChips += attChip("Search", att.trends_ratio, att.trends_term || "");
@@ -988,8 +1101,13 @@
         + '<p class="layer__role">' + esc(l.role) + "</p>"
         + '<p class="layer__watch"><b>Watch:</b> ' + esc(l.watch) + "</p>"
         + '<div class="ltable-wrap"><table class="ltable">'
-        + "<thead><tr><th>Company</th><th>Last</th><th>1D</th><th>3M</th><th>RS 3M</th>"
-        + "<th>Rev growth</th><th>Fwd P/E</th><th>Tgt upside</th><th>Score</th><th>90d</th></tr></thead>"
+        + '<thead><tr><th>Company</th><th>Last</th><th>1D</th><th>3M</th>'
+        + "<th>" + termWrap("RS 3M", "rs") + "</th>"
+        + "<th>" + termWrap("Rev growth", "rev_growth") + "</th>"
+        + "<th>" + termWrap("Fwd P/E", "fwd_pe") + "</th>"
+        + "<th>" + termWrap("Tgt upside", "upside") + "</th>"
+        + "<th>" + termWrap("Score", "ai_score") + "</th>"
+        + "<th>" + termWrap("90d", "spark") + "</th></tr></thead>"
         + "<tbody>" + rows + "</tbody></table></div>"
         + "</section>";
     }).join("");
@@ -999,6 +1117,278 @@
       });
     });
   }
+
+  // ---- "Good buy today" conditions meter --------------------------------------
+  function renderMeter() {
+    if (!data) return;
+    var m = data.market || {};
+    var score = 0;
+    var why = [];
+
+    var regime = m.regime || "neutral";
+    score += regime === "risk_on" ? 30 : regime === "neutral" ? 15 : 0;
+    why.push({ risk_on: "market regime: risk-on", neutral: "market regime: neutral",
+               risk_off: "market regime: risk-off" }[regime]);
+
+    var b = m.breadth && m.breadth.pct_above_50dma;
+    if (b != null) {
+      score += Math.round(b * 25);
+      why.push(Math.round(b * 100) + "% of scanned names above their 50-day");
+    } else { score += 12; }
+
+    var spy = m.benchmarks && m.benchmarks.SPY;
+    var chg5 = spy && spy.chg_5d;
+    if (chg5 != null) {
+      score += Math.max(0, Math.min(15, Math.round((chg5 + 0.02) / 0.04 * 15)));
+      why.push("S&P 500 " + fmtChg(chg5) + " over 5 days");
+    } else { score += 7; }
+
+    var sugs = data.suggestions || [];
+    if (sugs.length) {
+      var top3 = sugs.slice(0, 3).map(function (s) { return s.conviction; });
+      var avg = top3.reduce(function (a, b2) { return a + b2; }, 0) / top3.length;
+      score += Math.max(0, Math.min(20, Math.round((avg - 55) / 40 * 20)));
+      why.push(sugs.length + " signal" + (sugs.length === 1 ? "" : "s")
+        + " today, strongest " + sugs[0].conviction + "/100");
+    } else {
+      why.push("no signals cleared the bar today");
+    }
+    score += Math.min(10, sugs.filter(function (s) { return s.conviction >= 75; }).length * 2.5);
+
+    score = Math.round(Math.max(0, Math.min(100, score)));
+    var label = score >= 65 ? "Favourable" : score >= 40 ? "Mixed" : "Caution";
+    var cls = score >= 65 ? "meter--good" : score >= 40 ? "meter--mixed" : "meter--caution";
+
+    els.meter.hidden = false;
+    els.meter.className = "meter " + cls;
+    els.meterNum.textContent = score;
+    els.meterLabel.textContent = label;
+    els.meterFill.style.width = score + "%";
+    els.meterWhy.innerHTML = why.map(function (w) { return "<span>" + esc(w) + "</span>"; }).join("");
+  }
+
+  // ---- Crystal Ball -------------------------------------------------------------
+  var cb = { amount: 10000, horizon: "medium", risk: "balanced" };
+
+  // Explicit allocation matrices per (risk, horizon) — percentages sum to 100.
+  // Deliberately boring numbers; the fold explains the reasoning.
+  var ALLOC = {
+    careful: {
+      short: { core: 30, income: 30, cash: 40 },
+      medium: { core: 50, theme: 15, stocks: 10, income: 15, cash: 10 },
+      long: { core: 55, theme: 20, stocks: 10, income: 10, cash: 5 },
+    },
+    balanced: {
+      short: { core: 40, theme: 10, income: 25, cash: 25 },
+      medium: { core: 35, theme: 25, stocks: 20, income: 10, spec: 5, cash: 5 },
+      long: { core: 40, theme: 30, stocks: 20, spec: 5, cash: 5 },
+    },
+    bold: {
+      short: { core: 40, theme: 20, stocks: 10, income: 10, cash: 20 },
+      medium: { core: 20, theme: 30, stocks: 30, income: 5, spec: 10, cash: 5 },
+      long: { core: 25, theme: 30, stocks: 30, spec: 12, cash: 3 },
+    },
+  };
+
+  var BUCKET_META = {
+    core: { name: "Core — the boring backbone", color: "#5aa9e6",
+      why: "A broad index fund: one purchase, hundreds of companies. This is the part that quietly compounds while everything else makes noise." },
+    theme: { name: "AI theme — ride the build-out", color: "#d2a85e",
+      why: "Theme ETFs from the hottest layers of the AI supply chain. Concentrated, volatile, but diversified across a whole layer rather than one ticket." },
+    stocks: { name: "Single stocks — today's strongest ideas", color: "#ecc987",
+      why: "Pulled live from today's highest-conviction signals and the catch-up radar. Highest potential, highest risk — any single company can halve." },
+    income: { name: "Income — get paid to wait", color: "#a18ae6",
+      why: "Things that pay you: utilities riding AI power demand, and Strategy's high-yield preferred shares (with real caveats — read their cards below)." },
+    spec: { name: "Speculative — small and honest about it", color: "#f25f5c",
+      why: "Turbo-charged bets: bitcoin, its leveraged proxy MSTR, and a neocloud. Sized so that even going to zero wouldn't change your life." },
+    cash: { name: "Cash — dry powder", color: "#4c5563",
+      why: "Boring on purpose. Cash is an option on every future dip; the meter above tells you when conditions improve." },
+  };
+
+  function money(x) {
+    return "$" + Math.round(x).toLocaleString();
+  }
+
+  function cbQuote(sym) {
+    var q = live[sym] || quotes[sym];
+    return q && q.price != null ? q.price : null;
+  }
+
+  function buildBucketItems(key) {
+    var items = [];
+    if (key === "core") {
+      items.push({ sym: "VOO", why: "Vanguard S&P 500 ETF — a slice of America's 500 biggest companies for a 0.03% fee. Any broad index fund does the same job." });
+    } else if (key === "theme") {
+      items.push({ sym: "SMH", why: "The big semiconductor names (Nvidia, TSMC, Broadcom) in one ticket — the chain's engine room." });
+      var hot = (aiData && aiData.radar && aiData.radar.hot_layers) || [];
+      if (hot.indexOf("Memory & Storage") >= 0) {
+        items.push({ sym: "DRAM", why: "Memory pure-play ETF — the layer the catch-up radar says is running hottest (the Micron trade in fund form)." });
+      } else if (hot.indexOf("Power Generation & Grid") >= 0) {
+        items.push({ sym: "AIPO", why: "AI × power ETF — the electricity bottleneck wrapped in one ticket." });
+      } else {
+        items.push({ sym: "AIQ", why: "Broad AI ETF — 80+ holdings across the whole theme, for when no single layer stands out." });
+      }
+    } else if (key === "stocks") {
+      var seen = {};
+      ((data && data.suggestions) || []).slice(0, 3).forEach(function (s) {
+        seen[s.symbol] = true;
+        items.push({ sym: s.symbol,
+          whyText: "Today's signal — conviction " + s.conviction + "/100 ("
+            + (TIER_LABEL[s.tier] || s.tier) + ")."
+            + (s.reasons && s.reasons[0] ? " " + s.reasons[0] + "." : "") });
+      });
+      (((aiData || {}).radar || {}).catch_up || []).slice(0, 2).forEach(function (c) {
+        if (seen[c.symbol]) return;
+        items.push({ sym: c.symbol, whyText: c.thesis });
+      });
+      if (!items.length) items.push({ sym: "—", whyText: "No signals cleared the bar today — the honest answer is: wait." });
+    } else if (key === "income") {
+      items.push({ sym: "XLU", why: "Utilities ETF — the companies selling electricity to power-hungry AI data centres, with dividends." });
+      items.push({ sym: "STRC", why: "Strategy 'Stretch' preferred — variable dividend, currently ~11.5%/yr paid MONTHLY, engineered to hug $100. The yield is real; so is the bitcoin-balance-sheet risk behind it." });
+      items.push({ sym: "STRF", why: "Strategy 'Strife' preferred — 10% fixed dividend. Trading under $100 par, so the effective yield is higher. Same caveat: it's only as safe as Strategy's bitcoin pile." });
+    } else if (key === "spec") {
+      items.push({ sym: "BTC-USD", why: "Bitcoin itself — the cleanest way to own the idea, no company in between." });
+      items.push({ sym: "MSTR", why: "Strategy — a software company turned giant bitcoin vault. Moves like bitcoin with the volume turned way up, both directions. Down hard over the past 8 months; that's the bet and the warning in one chart." });
+      var neo = null;
+      ((aiData && aiData.layers) || []).forEach(function (l) {
+        if (l.key !== "datacenter_cloud") return;
+        (l.companies || []).forEach(function (c) {
+          if (["CRWV", "NBIS", "IREN", "APLD"].indexOf(c.symbol) >= 0
+              && (!neo || (c.ai_score || 0) > (neo.ai_score || 0))) neo = c;
+        });
+      });
+      if (neo) items.push({ sym: neo.symbol, why: "Best-scoring neocloud right now (" + (neo.ai_score || "—") + "/100) — rents raw GPU power by the hour. Hypergrowth, heavy debt, high octane." });
+    } else if (key === "cash") {
+      items.push({ sym: "CASH", why: "A high-interest savings account or money-market fund. Not dead money — it's your ticket to buy the next dip without selling anything." });
+    }
+    return items;
+  }
+
+  function renderCrystal() {
+    if (!els.cbOutput || els.viewCrystal.hidden) { renderStrategyFamily(); return; }
+    var alloc = (ALLOC[cb.risk] || {})[cb.horizon] || ALLOC.balanced.medium;
+    alloc = JSON.parse(JSON.stringify(alloc));
+
+    // regime adjustment: in a risk-off tape, pull risk down and hold more cash
+    var regime = data && data.market && data.market.regime;
+    var regimeNote = "";
+    if (regime === "risk_off") {
+      var taken = 0;
+      ["spec", "stocks", "theme"].forEach(function (k) {
+        if (alloc[k]) { var cut = Math.round(alloc[k] * 0.25); alloc[k] -= cut; taken += cut; }
+      });
+      alloc.cash = (alloc.cash || 0) + taken;
+      regimeNote = "The market is risk-off right now, so this sketch holds " + taken + "pp more cash than usual.";
+    } else if (regime === "risk_on") {
+      regimeNote = "The market is risk-on right now — conditions are friendlier than average for this sketch.";
+    }
+
+    var amount = Math.max(0, Number(els.cbAmount.value) || 0);
+    cb.amount = amount;
+
+    var keys = Object.keys(alloc).filter(function (k) { return alloc[k] > 0; });
+    var bar = keys.map(function (k) {
+      return '<span style="width:' + alloc[k] + '%;background:' + BUCKET_META[k].color + '" title="'
+        + esc(BUCKET_META[k].name + " " + alloc[k] + "%") + '"></span>';
+    }).join("");
+
+    var buckets = keys.map(function (k) {
+      var meta = BUCKET_META[k];
+      var dollars = amount * alloc[k] / 100;
+      var items = buildBucketItems(k);
+      var per = items.length ? dollars / items.length : 0;
+      var rows = items.map(function (it) {
+        var px = it.sym !== "CASH" && it.sym !== "—" ? cbQuote(it.sym) : null;
+        var pxHtml = px != null
+          ? '<span class="bitem__px">now ' + fmtPx(px, it.sym.endsWith("-USD") ? "Crypto" : "US") + "</span>" : "";
+        return '<div class="bitem">'
+          + '<span class="bitem__sym">' + esc(it.sym.replace("-USD", "")) + "</span>"
+          + '<span class="bitem__amt">' + money(per) + "</span>"
+          + pxHtml
+          + '<span class="bitem__why">' + esc(it.whyText || it.why || "") + "</span>"
+          + "</div>";
+      }).join("");
+      return '<div class="bucket">'
+        + '<div class="bucket__head">'
+        +   '<span class="bucket__dot" style="background:' + meta.color + '"></span>'
+        +   '<span class="bucket__name">' + esc(meta.name) + "</span>"
+        +   '<span class="bucket__amt">' + money(dollars) + "</span>"
+        +   '<span class="bucket__pct">' + alloc[k] + "%</span>"
+        +   '<span class="bucket__why">' + esc(meta.why) + "</span>"
+        + "</div>"
+        + '<div class="bucket__items">' + rows + "</div>"
+        + "</div>";
+    }).join("");
+
+    var horizonLabel = { short: "under 1 year", medium: "1–3 years", long: "3+ years" }[cb.horizon];
+    els.cbOutput.innerHTML =
+      '<div class="cb-warn"><b>Before anything else:</b> this is an educational sketch built from'
+      + " today's data and textbook allocation rules — not personal financial advice. It knows nothing about your"
+      + ' debts, income, taxes or sleep quality. Nobody — human or machine — can promise "maximum returns."'
+      + ' Anyone who does is selling something. If this money matters, talk to a licensed adviser.</div>'
+      + '<div class="cb-summary"><span>' + money(amount) + " · " + esc(horizonLabel) + " · " + esc(cb.risk) + "</span>"
+      + (regimeNote ? "<span>" + esc(regimeNote) + "</span>" : "")
+      + "</div>"
+      + '<div class="cb-bar">' + bar + "</div>"
+      + buckets
+      + '<p class="perf__note">Within each bucket, amounts are split evenly — precision beyond this is'
+      + " false comfort. A sensible rhythm: invest in 2–3 chunks over a few weeks rather than all at once,"
+      + " and rebalance once or twice a year. Tap any ticker term anywhere on this site for a plain-English"
+      + " explanation.</p>";
+    renderStrategyFamily();
+  }
+
+  var SFAMILY = [
+    { sym: "MSTR", nick: "the mothership",
+      desc: "Strategy (formerly MicroStrategy) — a software company that bet itself on bitcoin and now holds one of the world's largest BTC piles, much of it bought with borrowed money. The stock is effectively bitcoin with leverage: it rises faster and falls harder. It has fallen for 8 straight months as BTC cooled — high risk, high theatre." },
+    { sym: "STRK", nick: "Strike — 8% convertible",
+      desc: "A preferred share paying a fixed 8% yearly dividend, with a bonus: it can convert into MSTR stock if MSTR rises far enough. Think 'bond with a lottery ticket attached'. Trading well below its $100 par, the real yield is higher — because the market is pricing in real risk." },
+    { sym: "STRF", nick: "Strife — 10% fixed",
+      desc: "The straightforward one: 10% fixed dividend, no conversion frills, paid quarterly. Priced under par, so the effective yield is above 10%. You're lending money to a bitcoin treasury — the fat yield IS the risk warning." },
+    { sym: "STRD", nick: "Stride — 10% non-cumulative",
+      desc: "Also 10%, but 'non-cumulative': if Strategy ever skips a dividend, it never owes you the missed ones. That weaker protection is why it trades at the deepest discount — and therefore the juiciest (riskiest) effective yield of the family." },
+    { sym: "STRC", nick: "Stretch — variable, paid monthly",
+      desc: "Engineered to behave like a high-yield savings account: a variable dividend (currently ~11.5%/yr) paid monthly, with the rate tuned to keep the price hugging $100. The most stable of the family by design — but the income still depends entirely on Strategy staying solvent." },
+  ];
+
+  function renderStrategyFamily() {
+    if (!els.strategyFamily) return;
+    els.strategyFamily.innerHTML = SFAMILY.map(function (f) {
+      var q = quotes[f.sym] || {};
+      return '<div class="sfam">'
+        + '<div class="sfam__head">'
+        +   '<span class="sfam__sym">' + f.sym + "</span>"
+        +   '<span class="sfam__nick">' + esc(f.nick) + "</span>"
+        +   (q.price != null ? '<span class="sfam__px" data-live-px="' + f.sym + '">' + fmtPx(q.price, "US") + "</span>" : "")
+        +   (q.chg_1d != null ? '<span class="sfam__chg ' + chgClass(q.chg_1d) + '">' + fmtChg(q.chg_1d) + "</span>" : "")
+        + "</div>"
+        + '<p class="sfam__desc">' + esc(f.desc) + " "
+        + '<button type="button" class="t" data-term="' + (f.sym === "MSTR" ? "btc_treasury" : "preferred") + '">What kind of thing is this?</button></p>'
+        + "</div>";
+    }).join("");
+  }
+
+  function wireCrystal() {
+    if (els.cbAmount) {
+      els.cbAmount.addEventListener("input", function () { renderCrystal(); });
+    }
+    [["cbHorizon", "horizon"], ["cbRisk", "risk"]].forEach(function (pair) {
+      var el = els[pair[0]];
+      if (!el) return;
+      el.addEventListener("click", function (e) {
+        var btn = e.target.closest(".seg");
+        if (!btn) return;
+        cb[pair[1]] = btn.dataset.value;
+        el.querySelectorAll(".seg").forEach(function (b) {
+          var active = b === btn;
+          b.classList.toggle("is-active", active);
+          b.setAttribute("aria-pressed", String(active));
+        });
+        renderCrystal();
+      });
+    });
+  }
+  wireCrystal();
 
   // ---- Filters --------------------------------------------------------------
   function wireSegmented(container, key) {
@@ -1027,6 +1417,7 @@
     renderRadar();
     renderMovers();
     renderWatchlist();
+    renderMeter();
     loadPerf();
     setStatus("");
     // auto-select the top signal on desktop
@@ -1036,6 +1427,7 @@
     pollQuotes();
     loadFearGreed();
     if (location.hash === "#ai") switchView("ai");
+    if (location.hash === "#crystal") switchView("crystal");
   }
 
   wireSegmented(els.marketFilter, "market");

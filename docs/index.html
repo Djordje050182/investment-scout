@@ -27,6 +27,10 @@
     </div>
 
     <div class="cmdbar__right">
+      <button type="button" class="meter-mini" id="meter-mini" hidden
+        title="Today's buy-conditions meter — tap to see the full breakdown">
+        <span>Today</span><b>—</b>
+      </button>
       <span class="regime t" id="regime-pill" data-term="regime" hidden>
         <span class="regime__dot" aria-hidden="true"></span>
         <span class="regime__text">—</span>
@@ -66,6 +70,7 @@
       </div>
       <div class="meter__gauge"><span class="meter__fill" id="meter-fill"></span></div>
       <div class="meter__why" id="meter-why"></div>
+      <div class="meter__contra" id="meter-contra" hidden></div>
     </section>
 
     <!-- ===================== Filters ===================== -->

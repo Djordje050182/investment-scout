@@ -30,6 +30,12 @@
     gainers: document.getElementById("gainers"),
     losers: document.getElementById("losers"),
     breadth: document.getElementById("breadth"),
+    watchlistPanel: document.getElementById("watchlist-panel"),
+    watchlist: document.getElementById("watchlist"),
+    recordPanel: document.getElementById("record-panel"),
+    record: document.getElementById("record"),
+    edgePanel: document.getElementById("edge-panel"),
+    edge: document.getElementById("edge"),
   };
 
   // ---- State ----------------------------------------------------------
@@ -57,6 +63,49 @@
     macd_bull_cross: "MACD Cross",
     oversold_reversal: "Oversold Reversal",
   };
+
+  // ---- Watchlist (localStorage) -----------------------------------------
+  var WL_KEY = "scout_watchlist_v1";
+
+  function loadWL() {
+    try { return JSON.parse(localStorage.getItem(WL_KEY)) || {}; }
+    catch (e) { return {}; }
+  }
+  function saveWL(wl) {
+    try { localStorage.setItem(WL_KEY, JSON.stringify(wl)); } catch (e) {}
+  }
+  function isStarred(sym) { return !!loadWL()[sym]; }
+  function toggleStar(sym, market, price) {
+    var wl = loadWL();
+    if (wl[sym]) { delete wl[sym]; }
+    else {
+      wl[sym] = { market: market, priceAt: price, addedAt: new Date().toISOString().slice(0, 10) };
+    }
+    saveWL(wl);
+    renderWatchlist();
+    renderList();
+    if (selected === sym) {
+      var s = (data.suggestions || []).find(function (x) { return x.symbol === sym; });
+      if (s) renderDetail(s);
+    }
+  }
+  function starBtn(sym, market, price, extraClass) {
+    var on = isStarred(sym);
+    return '<button type="button" class="star ' + (extraClass || "") + (on ? " is-on" : "")
+      + '" data-star="' + esc(sym) + '" data-star-market="' + esc(market || "US")
+      + '" data-star-price="' + (price != null ? price : "") + '"'
+      + ' aria-label="' + (on ? "Remove from" : "Add to") + ' watchlist" title="Watchlist">'
+      + (on ? "★" : "☆") + "</button>";
+  }
+  // one delegated handler for every star on the page
+  document.addEventListener("click", function (e) {
+    var btn = e.target.closest("[data-star]");
+    if (!btn) return;
+    e.stopPropagation();
+    e.preventDefault();
+    toggleStar(btn.dataset.star, btn.dataset.starMarket,
+      btn.dataset.starPrice ? Number(btn.dataset.starPrice) : null);
+  }, true);
 
   // ---- Utils ----------------------------------------------------------
   function esc(s) {
@@ -168,6 +217,8 @@
     Object.keys(quotes).forEach(function (sym) {
       add(sym, sym.endsWith("-USD") ? "Crypto" : sym.endsWith(".AX") ? "ASX" : "US");
     });
+    var wl = loadWL();
+    Object.keys(wl).forEach(function (sym) { add(sym, wl[sym].market || "US"); });
     return syms;
   }
 
@@ -228,16 +279,23 @@
     els.empty.hidden = list.length > 0;
     list.forEach(function (s, i) {
       var p = bestPrice(s);
-      var row = document.createElement("button");
-      row.type = "button";
+      // div+role, not <button>: rows contain a nested star button, and
+      // nested <button>s are invalid HTML the parser will split apart
+      var row = document.createElement("div");
+      row.setAttribute("role", "button");
+      row.tabIndex = 0;
       row.className = "sigrow" + (s.symbol === selected ? " is-active" : "");
       row.setAttribute("data-sym", s.symbol);
+      row.addEventListener("keydown", function (e) {
+        if (e.key === "Enter" || e.key === " ") { e.preventDefault(); select(s.symbol); }
+      });
       var name = (s.company && s.company.name) ? s.company.name : (s.market === "Crypto" ? "Cryptocurrency" : "");
       row.innerHTML =
         '<span class="col-rank">' + (i + 1) + "</span>"
         + '<span class="sigrow__sym">'
         +   '<span class="sigrow__ticker">' + esc(s.symbol.replace("-USD", ""))
         +     '<span class="mchip mchip--' + esc(s.market) + '">' + esc(s.market) + "</span>"
+        +     starBtn(s.symbol, s.market, p.px)
         +   "</span>"
         +   '<span class="sigrow__name">' + esc(name) + "</span>"
         + "</span>"
@@ -265,8 +323,9 @@
       + "</div>";
   }
 
-  function indicatorGrid(snap) {
+  function indicatorGrid(snap, market) {
     if (!snap) return "";
+    var benchName = market === "ASX" ? "ASX 200" : market === "Crypto" ? "BTC" : "SPY";
     var cells = [];
     if (snap.rsi14 != null) {
       var rcls = snap.rsi14 > 70 ? "warn" : snap.rsi14 >= 50 ? "up" : snap.rsi14 < 35 ? "down" : "";
@@ -301,6 +360,8 @@
     if (snap.ret_1m != null) cells.push(indCell("1M", fmtPct(snap.ret_1m, true), "", chgClass(snap.ret_1m)));
     if (snap.ret_3m != null) cells.push(indCell("3M", fmtPct(snap.ret_3m, true), "", chgClass(snap.ret_3m)));
     if (snap.ret_6m != null) cells.push(indCell("6M", fmtPct(snap.ret_6m, true), "", chgClass(snap.ret_6m)));
+    if (snap.rel_1m != null) cells.push(indCell("RS 1M", fmtPct(snap.rel_1m, true), "vs " + benchName, chgClass(snap.rel_1m)));
+    if (snap.rel_3m != null) cells.push(indCell("RS 3M", fmtPct(snap.rel_3m, true), "vs " + benchName, chgClass(snap.rel_3m)));
     return cells.join("");
   }
 
@@ -369,8 +430,11 @@
       +   '<div class="dhead__id">'
       +     '<h2 class="dhead__sym">' + esc(s.symbol.replace("-USD", ""))
       +       '<span class="tierbadge tierbadge--' + esc(s.tier) + '">' + esc(TIER_LABEL[s.tier] || s.tier) + "</span>"
+      +       starBtn(s.symbol, s.market, p.px)
       +     "</h2>"
-      +     '<p class="dhead__name">' + esc(name || s.market) + "</p>"
+      +     '<p class="dhead__name">' + esc(name || s.market)
+      +       (s.earnings ? '<span class="echip">⚠ Earnings in ' + s.earnings.days + "d · " + esc(s.earnings.date) + "</span>" : "")
+      +     "</p>"
       +   "</div>"
       +   '<div class="dhead__quote">'
       +     '<div class="dhead__px" data-live-px="' + esc(s.symbol) + '">' + fmtPx(p.px, s.market) + "</div>"
@@ -384,7 +448,7 @@
       +   '<i style="margin-left:auto">Conviction ' + s.conviction + " / 100</i></div>"
       + "</div>"
       + planHtml(s.trade_plan)
-      + '<div class="dsec"><h3 class="dsec__title">Indicators</h3><div class="igrid">' + indicatorGrid(s.snapshot) + "</div></div>"
+      + '<div class="dsec"><h3 class="dsec__title">Indicators</h3><div class="igrid">' + indicatorGrid(s.snapshot, s.market) + "</div></div>"
       + (patterns ? '<div class="dsec"><h3 class="dsec__title">Patterns</h3><div class="ptags">' + patterns + "</div></div>" : "")
       + '<div class="dsec"><h3 class="dsec__title">Technical composition</h3><div class="bars">'
       +   barRow("Setup", d.setup, "tech") + barRow("Trend", d.trend, "tech")
@@ -537,6 +601,104 @@
     }
   }
 
+  // ---- Watchlist panel ------------------------------------------------------
+  function renderWatchlist() {
+    var wl = loadWL();
+    var syms = Object.keys(wl);
+    els.watchlistPanel.hidden = false;
+    if (!syms.length) {
+      els.watchlist.innerHTML = '<p class="wl__empty">Tap ☆ on any signal to pin it here.</p>';
+      return;
+    }
+    els.watchlist.innerHTML = syms.map(function (sym) {
+      var w = wl[sym];
+      var p = bestPrice({ symbol: sym, market: w.market, price: null, chg_1d: null });
+      var since = (p.px != null && w.priceAt) ? p.px / w.priceAt - 1 : null;
+      return '<div class="wl__row">'
+        + '<span class="wl__sym">' + esc(sym.replace("-USD", ""))
+        +   '<span class="wl__since">since ' + esc(w.addedAt || "?") + "</span></span>"
+        + '<span class="wl__px">' + (w.priceAt != null ? fmtPx(w.priceAt, w.market) : "—") + "</span>"
+        + '<span class="wl__px" data-live-px="' + esc(sym) + '">' + fmtPx(p.px, w.market) + "</span>"
+        + '<span class="wl__chg ' + chgClass(since) + '">' + (since != null ? fmtChg(since) : "—") + "</span>"
+        + '<button type="button" class="wl__rm" data-star="' + esc(sym) + '" aria-label="Remove">✕</button>'
+        + "</div>";
+    }).join("");
+  }
+
+  // ---- Performance panels (track record + backtest) --------------------------
+  function fmtAvg(x) {
+    if (x == null) return "—";
+    return '<span class="' + (x >= 0 ? "up" : "down") + '">' + fmtPct(x, true) + "</span>";
+  }
+  function fmtWin(x) {
+    if (x == null) return "—";
+    return Math.round(x * 100) + "%";
+  }
+
+  function renderTrackRecord(tr) {
+    if (!tr || !tr.aggregates) return;
+    var o = tr.aggregates.overall || {};
+    if (!o.episodes) return;
+    els.recordPanel.hidden = false;
+    var strip = '<div class="stat-strip">'
+      + '<div class="breadth__cell"><span class="breadth__k">Leads tracked</span><span class="breadth__v">' + o.episodes + "</span></div>"
+      + (o.win_rate_1w != null ? '<div class="breadth__cell"><span class="breadth__k">1w win rate</span><span class="breadth__v">' + fmtWin(o.win_rate_1w) + "</span></div>" : "")
+      + (o.avg_1w != null ? '<div class="breadth__cell"><span class="breadth__k">1w avg</span><span class="breadth__v">' + fmtAvg(o.avg_1w) + "</span></div>" : "")
+      + (o.win_rate_1m != null ? '<div class="breadth__cell"><span class="breadth__k">1m win rate</span><span class="breadth__v">' + fmtWin(o.win_rate_1m) + "</span></div>" : "")
+      + (o.avg_1m != null ? '<div class="breadth__cell"><span class="breadth__k">1m avg</span><span class="breadth__v">' + fmtAvg(o.avg_1m) + "</span></div>" : "")
+      + (o.target_rate != null ? '<div class="breadth__cell"><span class="breadth__k">Hit T1 first</span><span class="breadth__v">' + fmtWin(o.target_rate) + "</span></div>" : "")
+      + "</div>";
+
+    var tiers = tr.aggregates.by_tier || {};
+    var rows = Object.keys(tiers).map(function (t) {
+      var a = tiers[t];
+      return "<tr><td>" + esc(TIER_LABEL[t] || t) + "</td><td>" + a.episodes + "</td><td>"
+        + fmtWin(a.win_rate_1w != null ? a.win_rate_1w : a.win_rate_1m) + "</td><td>"
+        + fmtAvg(a.avg_1w != null ? a.avg_1w : a.avg_1m) + "</td></tr>";
+    }).join("");
+    var table = rows
+      ? '<table class="perf__table"><thead><tr><th>Tier</th><th>n</th><th>Win</th><th>Avg</th></tr></thead><tbody>' + rows + "</tbody></table>"
+      : "";
+    els.record.innerHTML = strip + table
+      + '<p class="perf__note">Each lead is tracked from the day it first surfaced. Win/avg use the longest horizon with data (1-week early on, 1-month once mature). Updated daily after the scan.</p>';
+  }
+
+  function renderEdge(bt) {
+    if (!bt || !bt.aggregates || !bt.aggregates.by_pattern) return;
+    var base = (bt.aggregates.baseline || {}).r21 || {};
+    var pats = bt.aggregates.by_pattern;
+    var keys = Object.keys(pats).filter(function (k) { return pats[k].r21 && pats[k].r21.n >= 30; });
+    if (!keys.length) return;
+    keys.sort(function (a, b) { return (pats[b].r21.avg || 0) - (pats[a].r21.avg || 0); });
+    els.edgePanel.hidden = false;
+    var rows = keys.map(function (k) {
+      var s = pats[k].r21;
+      var edge = base.avg != null ? s.avg - base.avg : null;
+      return "<tr><td>" + esc(PATTERN_LABEL[k] || k) + "</td><td>" + s.n + "</td><td>"
+        + fmtWin(s.win_rate) + "</td><td>" + fmtAvg(s.avg) + "</td><td>"
+        + (edge != null ? fmtAvg(edge) : "—") + "</td></tr>";
+    }).join("");
+    els.edge.innerHTML =
+      '<table class="perf__table"><thead><tr><th>Pattern</th><th>n</th><th>Win</th><th>Avg 1m</th><th>vs base</th></tr></thead><tbody>'
+      + rows + "</tbody></table>"
+      + '<p class="perf__note">Walk-forward backtest: ' + esc(String(bt.years)) + "y of "
+      + esc(bt.universe ? bt.universe.toUpperCase() : "US") + " data, weekly evaluation, "
+      + Number(bt.eval_points).toLocaleString() + " points. Baseline 1m: "
+      + fmtWin(base.win_rate) + " win, " + fmtAvg(base.avg)
+      + ". Survivorship bias applies; no costs. A pattern needs a positive “vs base” to claim edge.</p>";
+  }
+
+  function loadPerf() {
+    fetch("./data/track_record.json", { cache: "no-store" })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(renderTrackRecord)
+      .catch(function () {});
+    fetch("./data/backtest.json", { cache: "no-store" })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(renderEdge)
+      .catch(function () {});
+  }
+
   // ---- Live data: Binance WS + quotes polling ------------------------------
   function cryptoSymbols() {
     return tapeSymbols().filter(function (s) { return s.market === "Crypto"; })
@@ -647,6 +809,8 @@
     renderList();
     renderRadar();
     renderMovers();
+    renderWatchlist();
+    loadPerf();
     setStatus("");
     // auto-select the top signal on desktop
     var first = visibleSuggestions()[0];

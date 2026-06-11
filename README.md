@@ -25,6 +25,16 @@ and **live crypto prices streamed from Binance** in the browser.
   near-live between scans.
 - In the browser, crypto prices stream in real time over Binance's public
   WebSocket, and the crypto Fear & Greed index comes from alternative.me.
+- `engine/track_record.py` (run daily after the scan) scores every past lead
+  against what price actually did — forward returns and stop/target resolution
+  — and feeds the dashboard's Track Record panel.
+- `engine/backtest.py` is a walk-forward backtest of all detectors (run
+  manually: `SCOUT_BT_YEARS=8 python -m engine.backtest`); its output powers
+  the Detector Edge panel.
+- Leads reporting earnings within 21 days carry a warning chip; every lead
+  shows relative strength vs its market benchmark (SPY / ASX 200 / BTC).
+- A star on any signal pins it to a localStorage watchlist that tracks the
+  price since you starred it.
 - The static site in `docs/` (GitHub Pages) renders all of it. Candlestick
   charts use TradingView's lightweight-charts via CDN.
 
@@ -34,6 +44,8 @@ and **live crypto prices streamed from Binance** in the browser.
 engine/
   run_scan.py            orchestrator: fetch -> score -> signals.json -> email
   refresh_quotes.py      intraday quote refresh (quotes.json)
+  track_record.py        score past leads vs forward returns (track_record.json)
+  backtest.py            walk-forward detector backtest (backtest.json)
   universe.py            symbol lists (us / asx / crypto / all)
   adapters/              data sources (yfinance)
   signals/

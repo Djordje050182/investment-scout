@@ -103,6 +103,22 @@
       </div>
     </section>
 
+    <!-- ===================== Watchlist + performance ===================== -->
+    <section class="lower lower--stats">
+      <div class="panel" id="watchlist-panel" hidden>
+        <h2 class="panel__title">Watchlist <span class="panel__sub">starred leads, saved on this device</span></h2>
+        <div id="watchlist"></div>
+      </div>
+      <div class="panel" id="record-panel" hidden>
+        <h2 class="panel__title">Track record <span class="panel__sub">how past leads actually did</span></h2>
+        <div id="record"></div>
+      </div>
+      <div class="panel" id="edge-panel" hidden>
+        <h2 class="panel__title">Detector edge <span class="panel__sub">8-year backtest, 21-day horizon</span></h2>
+        <div id="edge"></div>
+      </div>
+    </section>
+
     <!-- ===================== About / methodology ===================== -->
     <section class="about" id="about">
       <details class="fold">
@@ -136,6 +152,19 @@
         above entry; <strong>Target 2</strong> uses the pattern's measured move (cup depth
         or flag pole) when one fired, else 4×ATR. <strong>R:R</strong> is reward to
         Target&nbsp;1 over risk to the stop.</p>
+      </details>
+      <details class="fold">
+        <summary>Track record &amp; backtest</summary>
+        <p>The <strong>track record</strong> panel scores every past lead from the day it
+        first surfaced: forward returns at 1 week / 1 month / 3 months, and whether price
+        reached Target&nbsp;1 before the stop. It updates daily and does not forget the
+        losers. The <strong>detector edge</strong> panel comes from a walk-forward backtest
+        (8 years of US data, weekly evaluation, ~23,000 points): each pattern's 21-day
+        win rate and average return next to the universe baseline — a pattern only has
+        edge if it beats the baseline. Survivorship bias applies and costs aren't
+        modelled, so treat both as honest gauges, not guarantees. Leads with
+        <strong>earnings inside 21 days</strong> carry a warning chip — a chart setup
+        means little against a binary event.</p>
       </details>
       <details class="fold">
         <summary>Data sources &amp; limitations</summary>

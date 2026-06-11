@@ -39,11 +39,14 @@ jobs:
           SCOUT_UNIVERSE: all
         run: python -m engine.run_scan
 
+      - name: Update track record
+        run: python -m engine.track_record
+
       - name: Commit results
         run: |
           git config user.name "investment-scout-bot"
           git config user.email "bot@users.noreply.github.com"
-          git add docs/data/signals.json docs/data/history
+          git add docs/data/signals.json docs/data/history docs/data/track_record.json
           if git diff --staged --quiet; then
             echo "no changes to commit"
           else

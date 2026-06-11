@@ -12,7 +12,7 @@ signals.json now carries everything the dashboard needs:
 import json
 import math
 import os
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 from typing import Dict, List, Optional
 
 import pandas as pd
@@ -34,6 +34,37 @@ DEFAULT_HISTORY = "docs/data/history"
 
 RADAR_MIN = 50          # conviction floor for the near-miss radar list
 CHART_BARS = 130        # OHLCV bars embedded per suggestion
+EARNINGS_WINDOW = 21    # flag earnings this many days out (binary-event warning)
+
+# Benchmark used for each market's relative-strength read.
+BENCH_FOR = {"US": "SPY", "ASX": "^AXJO", "Crypto": "BTC-USD"}
+
+
+def bench_returns(benchmark_prices: Dict[str, pd.DataFrame]) -> Dict[str, Dict[str, float]]:
+    """1m/3m returns per benchmark symbol, for relative-strength comparison."""
+    out: Dict[str, Dict[str, float]] = {}
+    for sym, prices in benchmark_prices.items():
+        if prices is None or len(prices) < 64:
+            continue
+        close = prices["Close"].astype("float64")
+        r1m = float(close.iloc[-1] / close.iloc[-22] - 1.0)
+        r3m = float(close.iloc[-1] / close.iloc[-64] - 1.0)
+        out[sym] = {"ret_1m": r1m, "ret_3m": r3m}
+    return out
+
+
+def _add_relative_strength(snapshot: Dict, market: str,
+                           bench: Optional[Dict[str, Dict[str, float]]]) -> None:
+    """Attach rel_1m / rel_3m (symbol return minus benchmark return) in place."""
+    if not bench:
+        return
+    b = bench.get(BENCH_FOR.get(market, "SPY"))
+    if not b:
+        return
+    for key, rel_key in (("ret_1m", "rel_1m"), ("ret_3m", "rel_3m")):
+        r = snapshot.get(key)
+        if r is not None and b.get(key) is not None:
+            snapshot[rel_key] = round(r - b[key], 4)
 
 
 def _build_company(md: MarketData, fundamental: Dict) -> Dict:
@@ -105,7 +136,21 @@ def _score_one(md: MarketData) -> Dict:
             "scored": scored}
 
 
-def _to_suggestion(bundle: Dict) -> Dict:
+def _earnings_block(md: MarketData) -> Optional[Dict]:
+    """{date, days} when the next earnings report is inside the warning window."""
+    if not md.earnings_date:
+        return None
+    try:
+        d = date.fromisoformat(md.earnings_date[:10])
+    except ValueError:
+        return None
+    days = (d - date.today()).days
+    if 0 <= days <= EARNINGS_WINDOW:
+        return {"date": md.earnings_date[:10], "days": days}
+    return None
+
+
+def _to_suggestion(bundle: Dict, bench: Optional[Dict] = None) -> Dict:
     md, technical, fundamental, scored = (bundle["md"], bundle["technical"],
                                           bundle["fundamental"], bundle["scored"])
     suggestion = {
@@ -127,18 +172,25 @@ def _to_suggestion(bundle: Dict) -> Dict:
                         "value": fundamental["value"],
                         "moat": fundamental["moat"],
                         "management": fundamental.get("management", 0.0)},
-        "snapshot": technical.get("snapshot", {}),
+        "snapshot": dict(technical.get("snapshot", {})),
         "trade_plan": build_trade_plan(md.prices, technical["patterns"]),
         "chart": build_chart(md.prices),
     }
+    _add_relative_strength(suggestion["snapshot"], md.market, bench)
+    earnings = _earnings_block(md)
+    if earnings:
+        suggestion["earnings"] = earnings
     suggestion["summary"] = explain_suggestion(suggestion)
     suggestion["company"] = _build_company(md, fundamental)
     return suggestion
 
 
-def _to_radar(bundle: Dict) -> Dict:
+def _to_radar(bundle: Dict, bench: Optional[Dict] = None) -> Dict:
     """Compact near-miss entry: enough to show a row, no chart payload."""
     md, technical, scored = bundle["md"], bundle["technical"], bundle["scored"]
+    snap = {k: technical.get("snapshot", {}).get(k)
+            for k in ("rsi14", "adx14", "high_52w_dist", "ret_1m", "ret_3m")}
+    _add_relative_strength(snap, md.market, bench)
     return {
         "symbol": md.symbol,
         "market": md.market,
@@ -147,8 +199,7 @@ def _to_radar(bundle: Dict) -> Dict:
         "conviction": scored["conviction"],
         "tier": scored["tier"],
         "patterns": technical["patterns"][:3],
-        "snapshot": {k: technical.get("snapshot", {}).get(k)
-                     for k in ("rsi14", "adx14", "high_52w_dist", "ret_1m")},
+        "snapshot": snap,
     }
 
 
@@ -166,14 +217,15 @@ def build_movers(bundles: List[Dict], top: int = 5) -> Dict[str, List[Dict]]:
             "losers": sorted(rows[-top:], key=lambda r: r["chg_1d"])}
 
 
-def build_scan(adapter: DataAdapter, symbols: List[str]) -> Dict:
+def build_scan(adapter: DataAdapter, symbols: List[str],
+               bench: Optional[Dict] = None) -> Dict:
     """Fetch + score the universe; return suggestions, radar, movers, breadth input."""
     bundles = [_score_one(md) for md in adapter.fetch(symbols)]
 
-    suggestions = [_to_suggestion(b) for b in bundles if passes(b["scored"])]
+    suggestions = [_to_suggestion(b, bench) for b in bundles if passes(b["scored"])]
     suggestions.sort(key=lambda s: s["conviction"], reverse=True)
 
-    radar = [_to_radar(b) for b in bundles
+    radar = [_to_radar(b, bench) for b in bundles
              if not passes(b["scored"])
              and b["scored"]["conviction"] >= RADAR_MIN
              and b["scored"]["tier"] != "none"]
@@ -220,8 +272,8 @@ def main() -> None:
     scanned_at = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     adapter = YFinanceUSAdapter()
 
-    scan = build_scan(adapter, symbols)
     benchmark_prices = adapter.fetch_history(list(BENCHMARKS.keys()))
+    scan = build_scan(adapter, symbols, bench=bench_returns(benchmark_prices))
     market = build_market_block(benchmark_prices, scan["universe_prices"])
 
     payload = {

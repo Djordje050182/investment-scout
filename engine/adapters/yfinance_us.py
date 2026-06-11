@@ -119,6 +119,7 @@ class YFinanceUSAdapter(DataAdapter):
         fundamentals: Dict[str, float] = {}
         profile: Dict = {}
         holders: List[Dict] = []
+        earnings_date: Optional[str] = None
         if has_fundamentals(market):
             try:
                 info = ticker.info or {}
@@ -127,10 +128,33 @@ class YFinanceUSAdapter(DataAdapter):
             fundamentals = extract_fundamentals(info)
             profile = extract_profile(info)
             holders = self._fetch_holders(ticker)
+            earnings_date = self._fetch_earnings_date(ticker)
         price = float(prices["Close"].iloc[-1])
         return MarketData(symbol=symbol, market=market, prices=prices,
                           fundamentals=fundamentals, price=price,
-                          profile=profile, holders=holders)
+                          profile=profile, holders=holders,
+                          earnings_date=earnings_date)
+
+    @staticmethod
+    def _fetch_earnings_date(ticker) -> Optional[str]:
+        """Next scheduled earnings date as ISO YYYY-MM-DD; tolerate any failure."""
+        try:
+            cal = ticker.calendar
+            dates = None
+            if isinstance(cal, dict):
+                dates = cal.get("Earnings Date")
+            elif cal is not None and hasattr(cal, "loc"):
+                # older yfinance returned a DataFrame with an 'Earnings Date' row
+                try:
+                    dates = list(cal.loc["Earnings Date"])
+                except Exception:
+                    dates = None
+            if not dates:
+                return None
+            first = sorted(dates)[0]
+            return first.strftime("%Y-%m-%d") if hasattr(first, "strftime") else str(first)[:10]
+        except Exception:
+            return None
 
     @staticmethod
     def _fetch_holders(ticker) -> List[Dict]:

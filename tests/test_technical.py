@@ -4,8 +4,7 @@ from tests.fixtures import (
     v_bottom_closes, cup_no_handle_closes, cup_far_from_rim_closes,
     downtrend_closes,
 )
-from engine.signals.technical import scan_technical, _detect_cup_and_handle
-import pandas as pd
+from engine.signals.technical import scan_technical, _detect_cup_and_handle, _build_ctx
 
 
 def test_cup_and_handle_detected():
@@ -16,7 +15,7 @@ def test_cup_and_handle_detected():
 
 
 def _cup(closes):
-    return _detect_cup_and_handle(pd.Series(closes, dtype="float64"))
+    return _detect_cup_and_handle(_build_ctx(make_prices(closes)))
 
 
 def test_cup_rejects_v_bottom():
@@ -73,3 +72,40 @@ def test_score_capped_at_one():
     df = make_prices(cup_and_handle_closes())
     result = scan_technical(df)
     assert 0.0 <= result["score"] <= 1.0
+
+
+def test_scan_emits_subscores_and_snapshot():
+    df = make_prices(uptrend_closes())
+    result = scan_technical(df)
+    for key in ("setup", "trend", "momentum", "volume"):
+        assert key in result["detail"]
+        assert 0.0 <= result["detail"][key] <= 1.0
+    snap = result["snapshot"]
+    for key in ("rsi14", "adx14", "atr_pct", "sma50_dist", "high_52w_dist",
+                "ret_1m", "ret_3m", "vol_ratio"):
+        assert key in snap
+    assert snap["rsi14"] is None or 0.0 <= snap["rsi14"] <= 100.0
+
+
+def test_pattern_strengths_match_patterns():
+    df = make_prices(cup_and_handle_closes())
+    result = scan_technical(df)
+    assert set(result["patterns"]) == set(result["strengths"])
+    for v in result["strengths"].values():
+        assert 0.30 <= v <= 1.0
+
+
+def test_golden_cross_detected():
+    # A long decline then a sharp sustained recovery sized so the 50-day
+    # crosses above the 200-day within the detector's 15-bar freshness window.
+    closes = list(__import__("numpy").linspace(150, 100, 200))
+    closes += list(__import__("numpy").linspace(100, 175, 40))
+    result = scan_technical(make_prices(closes))
+    assert "golden_cross" in result["patterns"]
+
+
+def test_oversold_reversal_needs_long_uptrend():
+    # A dip + hook without 200+ bars of history can't fire the detector.
+    closes = [100.0] * 50 + list(__import__("numpy").linspace(100, 80, 10)) + [82.0, 84.0]
+    result = scan_technical(make_prices(closes))
+    assert "oversold_reversal" not in result["patterns"]

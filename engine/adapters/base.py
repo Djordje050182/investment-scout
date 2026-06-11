@@ -15,6 +15,7 @@ class MarketData:
     price: Optional[float] = None     # latest close convenience
     profile: Optional[Dict] = None    # company info (name, sector, description, ...)
     holders: Optional[List[Dict]] = None  # top institutional backers [{name, pct}]
+    earnings_date: Optional[str] = None   # next earnings date, ISO (equities only)
 
 
 class DataAdapter:

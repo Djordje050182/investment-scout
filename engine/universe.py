@@ -7,25 +7,38 @@ modest to respect free-API rate limits.
 """
 from typing import List
 
-# Liquid US large-caps across sectors.
+# Liquid US large- and mega-caps across sectors, plus quality growth names.
 _US = [
-    "AAPL", "MSFT", "GOOGL", "AMZN", "META", "NVDA", "TSLA", "BRK-B",
-    "JPM", "V", "MA", "UNH", "HD", "PG", "JNJ", "KO", "PEP", "COST",
-    "WMT", "DIS", "ADBE", "CRM", "NFLX", "AMD", "INTC", "CSCO", "ORCL",
-    "TXN", "QCOM", "NKE",
+    # mega-cap tech
+    "AAPL", "MSFT", "GOOGL", "AMZN", "META", "NVDA", "TSLA", "AVGO",
+    # semis & hardware
+    "AMD", "INTC", "TXN", "QCOM", "MU", "AMAT", "LRCX",
+    # software & internet
+    "ADBE", "CRM", "NFLX", "ORCL", "CSCO", "NOW", "PANW", "UBER", "SHOP",
+    "ABNB", "PLTR", "BKNG", "MELI",
+    # financials
+    "BRK-B", "JPM", "V", "MA", "AXP", "GS", "MS", "BLK", "SPGI",
+    # healthcare
+    "UNH", "JNJ", "LLY", "ABBV", "MRK", "TMO", "ISRG", "REGN", "VRTX",
+    # consumer
+    "HD", "PG", "KO", "PEP", "COST", "WMT", "DIS", "NKE", "MCD", "SBUX",
+    "LOW", "TGT",
+    # industrials / energy / materials
+    "CAT", "DE", "GE", "LMT", "XOM", "CVX", "LIN",
 ]
 
-# Large-cap ASX names (.AX suffix).
+# Large-cap ASX names (.AX suffix) plus quality growth.
 _ASX = [
     "BHP.AX", "CBA.AX", "CSL.AX", "NAB.AX", "WBC.AX", "ANZ.AX", "WES.AX",
     "MQG.AX", "GMG.AX", "WOW.AX", "TLS.AX", "RIO.AX", "FMG.AX", "WDS.AX",
-    "TCL.AX",
+    "TCL.AX", "XRO.AX", "WTC.AX", "COL.AX", "STO.AX", "QBE.AX", "ALL.AX",
+    "REA.AX", "CAR.AX", "PME.AX",
 ]
 
 # Major cryptocurrencies (priced in USD). No fundamentals — technical only.
 _CRYPTO = [
     "BTC-USD", "ETH-USD", "SOL-USD", "BNB-USD", "XRP-USD", "ADA-USD",
-    "DOGE-USD", "AVAX-USD",
+    "DOGE-USD", "AVAX-USD", "LINK-USD", "DOT-USD", "LTC-USD", "ATOM-USD",
 ]
 
 

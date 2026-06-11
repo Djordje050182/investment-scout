@@ -3,269 +3,253 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Investment Scout — Signal Desk</title>
-  <meta name="description" content="Daily technical and fundamental research leads. Not financial advice." />
+  <title>SCOUT — Market Signal Terminal</title>
+  <meta name="description" content="Daily technical and fundamental research leads with live market data. Not financial advice." />
+  <meta name="color-scheme" content="dark" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="./style.css" />
+  <script src="https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
 </head>
 <body>
-  <div class="grain" aria-hidden="true"></div>
 
-  <header class="masthead">
-    <div class="masthead__inner">
-      <div class="brand">
-        <span class="brand__mark" aria-hidden="true">
-          <svg viewBox="0 0 32 32" width="32" height="32" role="img" aria-label="Investment Scout logo">
-            <circle cx="16" cy="16" r="14" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.4"/>
-            <path d="M16 4 L16 28 M4 16 L28 16" stroke="currentColor" stroke-width="1" opacity="0.25"/>
-            <path d="M7 20 L13 13 L18 17 L25 9" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-        </span>
-        <div class="brand__text">
-          <h1>Investment&nbsp;Scout</h1>
-          <p class="brand__sub">Signal Desk</p>
-        </div>
-        <a class="brand__about" href="#about">About &amp; glossary</a>
-      </div>
+  <!-- ===================== Command bar ===================== -->
+  <header class="cmdbar">
+    <div class="cmdbar__brand">
+      <span class="brand-mark" aria-hidden="true"></span>
+      <span class="brand-word">SCOUT</span>
+      <span class="brand-tag">Signal&nbsp;Terminal</span>
+    </div>
 
-      <dl class="meta" aria-label="Scan metadata">
-        <div class="meta__cell">
-          <dt>Last scanned</dt>
-          <dd id="scanned-at">—</dd>
-        </div>
-        <div class="meta__cell">
-          <dt>Universe</dt>
-          <dd id="universe">—</dd>
-        </div>
-        <div class="meta__cell meta__cell--accent">
-          <dt>Leads</dt>
-          <dd id="count">—</dd>
-        </div>
-      </dl>
+    <div class="cmdbar__market" id="bench-strip" aria-label="Benchmark overview">
+      <!-- benchmark pills injected -->
+    </div>
+
+    <div class="cmdbar__right">
+      <span class="regime" id="regime-pill" hidden>
+        <span class="regime__dot" aria-hidden="true"></span>
+        <span class="regime__text">—</span>
+      </span>
+      <span class="fng" id="fng" hidden title="Crypto Fear &amp; Greed Index (alternative.me)">
+        <span class="fng__label">F&amp;G</span>
+        <span class="fng__val">—</span>
+      </span>
+      <span class="scantime" id="scanned-at" title="Time of the last full daily scan">—</span>
     </div>
   </header>
 
+  <!-- ===================== Ticker tape ===================== -->
+  <div class="tape" id="tape" aria-hidden="true">
+    <div class="tape__track" id="tape-track"></div>
+  </div>
+
   <main class="shell" id="main">
-    <section class="controls" aria-label="Filter controls">
-      <div class="controls__group" role="group" aria-label="Filter by tier">
-        <span class="controls__label">Conviction type</span>
-        <div class="segmented" id="tier-filter">
-          <button type="button" class="seg is-active" data-value="all" aria-pressed="true">All</button>
-          <button type="button" class="seg" data-value="both" aria-pressed="false">High conviction</button>
-          <button type="button" class="seg" data-value="technical" aria-pressed="false">Technical</button>
-          <button type="button" class="seg" data-value="fundamental" aria-pressed="false">Fundamental</button>
-        </div>
-      </div>
 
-      <div class="controls__group" role="group" aria-label="Filter by market">
-        <span class="controls__label">Market</span>
-        <div class="segmented" id="market-filter">
-          <button type="button" class="seg is-active" data-value="all" aria-pressed="true">All</button>
-          <button type="button" class="seg" data-value="US" aria-pressed="false">US</button>
-          <button type="button" class="seg" data-value="ASX" aria-pressed="false">ASX</button>
-          <button type="button" class="seg" data-value="Crypto" aria-pressed="false">Crypto</button>
-        </div>
-      </div>
+    <!-- ===================== View switcher ===================== -->
+    <nav class="viewtabs" aria-label="Views">
+      <button type="button" class="viewtab is-active" data-view="signals" aria-pressed="true">Signals</button>
+      <button type="button" class="viewtab" data-view="ai" aria-pressed="false">AI&nbsp;Supply&nbsp;Chain</button>
+    </nav>
 
-      <div class="controls__group controls__group--slider">
-        <label class="controls__label" for="min-conviction">
-          Min. conviction <span class="controls__value" id="min-conviction-value">0</span>
-        </label>
-        <input type="range" id="min-conviction" min="0" max="100" step="1" value="0"
-               aria-describedby="min-conviction-value" />
+    <div id="view-signals">
+
+    <!-- ===================== Filters ===================== -->
+    <section class="toolbar" aria-label="Filters">
+      <div class="seggroup" id="market-filter" role="group" aria-label="Filter by market">
+        <button type="button" class="seg is-active" data-value="all" aria-pressed="true">All</button>
+        <button type="button" class="seg" data-value="US" aria-pressed="false">US</button>
+        <button type="button" class="seg" data-value="ASX" aria-pressed="false">ASX</button>
+        <button type="button" class="seg" data-value="Crypto" aria-pressed="false">Crypto</button>
       </div>
+      <div class="seggroup" id="tier-filter" role="group" aria-label="Filter by signal tier">
+        <button type="button" class="seg is-active" data-value="all" aria-pressed="true">All&nbsp;tiers</button>
+        <button type="button" class="seg" data-value="both" aria-pressed="false">High&nbsp;conviction</button>
+        <button type="button" class="seg" data-value="technical" aria-pressed="false">Technical</button>
+        <button type="button" class="seg" data-value="fundamental" aria-pressed="false">Fundamental</button>
+      </div>
+      <div class="toolbar__count" id="lead-count" aria-live="polite"></div>
     </section>
 
     <div id="status" class="status" role="status" aria-live="polite"></div>
 
-    <section id="cards" class="grid" aria-label="Signal suggestions"></section>
-
-    <div id="empty" class="empty" hidden>
-      <div class="empty__glyph" aria-hidden="true">∅</div>
-      <p class="empty__headline">No opportunities cleared the bar today.</p>
-      <p class="empty__hint">Loosen the filters or check back after the next scan.</p>
-    </div>
-
-    <section class="about" id="about" aria-labelledby="about-title">
-      <h2 class="about__title" id="about-title">About Investment Scout</h2>
-
-      <div class="about__lede">
-        <p>Investment Scout is an automated research tool that scans the markets once
-        a day and surfaces a short list of opportunities worth a closer look — each
-        one with a plain-English explanation of <em>why</em> it showed up. It is a
-        starting point for your own research, not advice and not a trading bot: it
-        never buys or sells anything.</p>
+    <!-- ===================== Signals: list + detail ===================== -->
+    <section class="desk">
+      <div class="siglist" id="siglist" aria-label="Today's signals">
+        <div class="siglist__head">
+          <span class="col-rank">#</span>
+          <span class="col-sym">Symbol</span>
+          <span class="col-price">Last / Δ1d</span>
+          <span class="col-spark"></span>
+          <span class="col-conv">Conviction</span>
+        </div>
+        <div id="sigrows"></div>
+        <div id="empty" class="empty" hidden>
+          <p class="empty__headline">No signals cleared the bar.</p>
+          <p class="empty__hint">Loosen the filters, check the radar below, or wait for the next scan.</p>
+        </div>
       </div>
 
-      <div class="about__grid">
-        <article class="about__card">
-          <h3>What it does</h3>
-          <p>Every weekday after the US market closes, it scans US, ASX, and crypto
-          markets for two kinds of opportunity: <strong>technical</strong> setups on
-          the price chart (e.g. a cup-and-handle or a breakout) and
-          <strong>fundamental</strong> strength in the business (a high-quality,
-          reasonably-priced company in the Warren Buffett mould). It scores each one,
-          keeps only those that clear a quality bar, and lists them here — and emails
-          them to the owner.</p>
-        </article>
+      <aside class="detail" id="detail" aria-label="Signal detail" hidden>
+        <div class="detail__inner" id="detail-inner"></div>
+      </aside>
+    </section>
 
-        <article class="about__card">
-          <h3>Where the data comes from</h3>
-          <p>All data is pulled from <strong>Yahoo Finance</strong> (via the free
-          <code>yfinance</code> library): daily price &amp; volume history, company
-          financials, profile details, and institutional ownership. Because it's a
-          free source, coverage is strongest for US large-caps, good for the ASX, and
-          price-only for crypto. Data can occasionally be delayed or incomplete — so
-          always treat a lead as a prompt to dig deeper, never as gospel.</p>
-        </article>
-
-        <article class="about__card">
-          <h3>How the scoring works</h3>
-          <p>Each candidate gets a <strong>technical</strong> score (0–1) from chart
-          pattern detectors and a <strong>fundamental</strong> score (0–1) from a
-          Buffett-style screen of quality, moat, value, and management. These combine
-          into a single <strong>Conviction</strong> score from 0–100. A name that
-          looks strong on <em>both</em> the chart and the business gets a bonus and is
-          flagged "High&nbsp;Conviction" — a great company <em>and</em> a sensible
-          entry point. Only candidates above the bar are shown.</p>
-        </article>
-
-        <article class="about__card">
-          <h3>What it deliberately doesn't do</h3>
-          <p>It doesn't place trades, hold your money, or connect to a broker. It
-          doesn't predict the future or tell you what to buy. It can't see news,
-          earnings calls, or anything beyond the numbers. Think of it as a tireless
-          junior analyst that hands you a daily shortlist with its reasoning — the
-          judgement, and the decision, stay with you.</p>
-        </article>
+    <!-- ===================== Radar + movers ===================== -->
+    <section class="lower">
+      <div class="panel" id="radar-panel">
+        <h2 class="panel__title">Radar <span class="panel__sub">near-misses worth watching</span></h2>
+        <div class="radar" id="radar"></div>
       </div>
+      <div class="panel" id="movers-panel">
+        <h2 class="panel__title">Movers <span class="panel__sub">across the scanned universe</span></h2>
+        <div class="movers">
+          <div class="movers__col"><h3 class="movers__h up">Gainers</h3><div id="gainers"></div></div>
+          <div class="movers__col"><h3 class="movers__h down">Losers</h3><div id="losers"></div></div>
+        </div>
+        <div class="breadth" id="breadth"></div>
+      </div>
+    </section>
 
-      <h2 class="glossary__title" id="glossary">Glossary</h2>
+    <!-- ===================== Watchlist + performance ===================== -->
+    <section class="lower lower--stats">
+      <div class="panel" id="watchlist-panel" hidden>
+        <h2 class="panel__title">Watchlist <span class="panel__sub">starred leads, saved on this device</span></h2>
+        <div id="watchlist"></div>
+      </div>
+      <div class="panel" id="record-panel" hidden>
+        <h2 class="panel__title">Track record <span class="panel__sub">how past leads actually did</span></h2>
+        <div id="record"></div>
+      </div>
+      <div class="panel" id="edge-panel" hidden>
+        <h2 class="panel__title">Detector edge <span class="panel__sub">8-year backtest, 21-day horizon</span></h2>
+        <div id="edge"></div>
+      </div>
+    </section>
 
-      <h3 class="glossary__group">Our scores</h3>
-      <dl class="glossary__grid">
-        <div class="glossary__item">
-          <dt>Conviction</dt>
-          <dd>Our headline 0–100 confidence score, blending the chart (technical) and
-          the business (fundamental) signals. When both line up, the score gets a
-          bonus. Higher means a stronger lead — never a guarantee.</dd>
-        </div>
-        <div class="glossary__item">
-          <dt>Strength</dt>
-          <dd>An overall read on how solid the business is, blending quality, moat, and
-          value into one number — separate from whether now is a good time to buy.</dd>
-        </div>
-        <div class="glossary__item">
-          <dt>Backing</dt>
-          <dd>How strongly professional investors back the company — mainly the share
-          owned by institutions (funds like BlackRock and Vanguard), with a lift for
-          insider ownership. High backing means the "smart money" is in.</dd>
-        </div>
-        <div class="glossary__item">
-          <dt>Tiers: High Conviction / Technical / Fundamental</dt>
-          <dd><strong>Technical</strong> = surfaced on the chart alone.
-          <strong>Fundamental</strong> = surfaced on the business alone.
-          <strong>High Conviction (both)</strong> = the chart and the business look
-          strong at once — our top tier. Crypto is always technical-only.</dd>
-        </div>
-      </dl>
+    </div><!-- /view-signals -->
 
-      <h3 class="glossary__group">Chart patterns (technical)</h3>
-      <dl class="glossary__grid">
-        <div class="glossary__item">
-          <dt>Cup-and-handle</dt>
-          <dd>A bullish pattern shaped like a teacup: a gradual, rounded decline and
-          recovery (the cup), then a small dip and steadying (the handle), with the
-          price ready to push higher. We require a genuinely rounded base — not a
-          sharp V — and a price sitting just below its prior peak.</dd>
+    <!-- ===================== AI Supply Chain view ===================== -->
+    <div id="view-ai" hidden>
+      <section class="aihead">
+        <div class="aihead__lede">
+          <h2 class="aihead__title">The AI build-out, end to end</h2>
+          <p class="aihead__sub">Capex flows down this chain layer by layer — chips re-rated first,
+          then memory, then power. The heat map tracks where the rotation is <em>now</em>;
+          the radar hunts the layer it reaches <em>next</em>.</p>
         </div>
-        <div class="glossary__item">
-          <dt>Breakout</dt>
-          <dd>The price pushes above a ceiling it has struggled to clear before
-          (resistance), ideally on heavier-than-usual trading volume. Strong volume
-          suggests real conviction behind the move rather than a fakeout.</dd>
-        </div>
-        <div class="glossary__item">
-          <dt>Uptrend (moving averages)</dt>
-          <dd>The price is above its rising 50-day and 200-day average prices — a sign
-          the broader direction is up. A "moving average" smooths out daily noise to
-          show the underlying trend.</dd>
-        </div>
-        <div class="glossary__item">
-          <dt>RSI (Relative Strength Index)</dt>
-          <dd>A 0–100 momentum gauge. Around 50 is neutral; we like healthy upward
-          momentum (roughly 50–70) but treat very high readings (overbought) as a
-          caution rather than a green light.</dd>
-        </div>
-        <div class="glossary__item">
-          <dt>Resistance &amp; volume</dt>
-          <dd><strong>Resistance</strong> is a price level a stock has repeatedly
-          failed to break above. <strong>Volume</strong> is how many shares traded —
-          a surge alongside a move signals stronger participation.</dd>
-        </div>
-      </dl>
+        <div class="aihead__meta" id="ai-meta"></div>
+      </section>
 
-      <h3 class="glossary__group">Business metrics (fundamental)</h3>
-      <dl class="glossary__grid">
-        <div class="glossary__item">
-          <dt>Quality</dt>
-          <dd>How good the business is: consistently high return on equity, healthy
-          profit margins, low debt, and positive free cash flow. Good money made
-          without big risks.</dd>
+      <section class="lower lower--airadar">
+        <div class="panel panel--gold" id="catchup-panel">
+          <h2 class="panel__title">Catch-up radar <span class="panel__sub">the Micron pattern: hot layer, laggard not yet re-rated</span></h2>
+          <div id="catchup"></div>
         </div>
-        <div class="glossary__item">
-          <dt>Value</dt>
-          <dd>Whether the price looks reasonable for what you get — mainly the P/E
-          ratio. A great company at a silly price is not a great investment.</dd>
+        <div class="panel" id="leaders-panel">
+          <h2 class="panel__title">Chain leaders <span class="panel__sub">strength at highs across the chain</span></h2>
+          <div id="leaders"></div>
         </div>
-        <div class="glossary__item">
-          <dt>Moat</dt>
-          <dd>A durable competitive advantage that protects profits — a strong brand,
-          network effects, switching costs. We approximate it with steady, high
-          margins and returns over time. Warren Buffett's favourite trait.</dd>
-        </div>
-        <div class="glossary__item">
-          <dt>ROE (Return on Equity)</dt>
-          <dd>How much profit a company generates from shareholders' money each year.
-          Consistently high ROE (say, above 15–20%) signals a genuinely productive,
-          well-run business.</dd>
-        </div>
-        <div class="glossary__item">
-          <dt>Profit margin</dt>
-          <dd>The share of revenue left as profit after costs. Fatter, stable margins
-          point to pricing power and an efficient operation.</dd>
-        </div>
-        <div class="glossary__item">
-          <dt>Debt-to-equity</dt>
-          <dd>How much the company borrows relative to its own capital. Lower is
-          safer — heavily indebted companies are more fragile when conditions turn.</dd>
-        </div>
-        <div class="glossary__item">
-          <dt>P/E ratio (Price-to-Earnings)</dt>
-          <dd>The share price divided by earnings per share — roughly, how many years
-          of profit you're paying for. A lower P/E (for a solid business) suggests
-          better value.</dd>
-        </div>
-        <div class="glossary__item">
-          <dt>Free cash flow</dt>
-          <dd>The cash left over after a company pays its running costs and
-          investment. Positive, growing free cash flow is the lifeblood of a healthy
-          business.</dd>
-        </div>
-        <div class="glossary__item">
-          <dt>Institutional &amp; insider ownership</dt>
-          <dd>The share of a company held by big professional funds (institutions) and
-          by its own executives and directors (insiders). High institutional holding
-          shows professional confidence; insider holding shows skin in the game.</dd>
-        </div>
-      </dl>
+      </section>
+
+      <section class="panel" id="etf-panel">
+        <h2 class="panel__title">Theme ETFs <span class="panel__sub">one-ticket exposure, from chips to power</span></h2>
+        <div id="etfs"></div>
+      </section>
+
+      <section id="ai-layers"></section>
+
+      <details class="fold" style="margin-top:14px">
+        <summary>How this view works</summary>
+        <p>Every company is scored 0–100: <strong>momentum</strong> (40% — relative strength vs
+        SMH, distance from 52-week high, trend), <strong>growth</strong> (35% — revenue growth,
+        earnings growth, gross margin), and <strong>value-for-growth</strong> (25% — forward P/E
+        against growth plus analyst target upside). <strong>Layer heat</strong> blends the layer's
+        median relative strength with its breadth. The <strong>catch-up radar</strong> encodes the
+        trade most people miss: when a layer turns hot, the names that haven't moved yet — but whose
+        growth and trend are intact and whose multiple is not the richest of their peers — are where
+        the rotation tends to go next. That was the Micron setup: AI demand had clearly reached
+        memory before MU's multiple did. Data refreshes daily with the scan; KRX names quote in ₩.
+        None of this is advice — it's a structured map for your own theses.</p>
+      </details>
+    </div><!-- /view-ai -->
+
+    <!-- ===================== About / methodology ===================== -->
+    <section class="about" id="about">
+      <details class="fold">
+        <summary>What is this?</summary>
+        <p>SCOUT is an automated research engine. Every weekday after the US close it
+        scans US, ASX, and crypto markets for <strong>technical setups</strong> (12 pattern
+        detectors: cup-and-handle, breakout, bull flag, double bottom, golden cross,
+        volatility squeeze, pullback-to-trend, and more) and <strong>fundamental
+        strength</strong> (a Buffett-style screen of quality, moat, value, and management).
+        Each lead gets a 0–100 conviction score, an indicator snapshot, and an ATR-based
+        trade plan. Crypto prices stream live from Binance; equity quotes refresh every
+        30 minutes during US market hours. It never trades — every lead is a starting
+        point for your own research, not advice.</p>
+      </details>
+      <details class="fold">
+        <summary>How conviction is scored</summary>
+        <p>The technical score blends four sub-scores: <strong>setup</strong> (the strongest
+        chart pattern, with smaller credit for confirming patterns), <strong>trend</strong>
+        (moving-average structure and ADX), <strong>momentum</strong> (RSI, MACD, 1-month
+        rate of change), and <strong>volume</strong> (recent volume versus baseline and
+        on-balance-volume slope). The fundamental score blends quality (ROE, margins, debt,
+        free cash flow), moat, value (P/E), and management (buybacks). A name that is strong
+        on both fronts gets an alignment bonus and the <em>High Conviction</em> tier. The
+        radar lists names that nearly cleared the bar.</p>
+      </details>
+      <details class="fold">
+        <summary>Trade plans</summary>
+        <p>Each lead carries levels for framing — not orders. <strong>Entry</strong> is the
+        last close. <strong>Stop</strong> is the tighter of the 20-day swing low and
+        2×ATR below entry, never closer than 1×ATR. <strong>Target 1</strong> is 2×ATR
+        above entry; <strong>Target 2</strong> uses the pattern's measured move (cup depth
+        or flag pole) when one fired, else 4×ATR. <strong>R:R</strong> is reward to
+        Target&nbsp;1 over risk to the stop.</p>
+      </details>
+      <details class="fold">
+        <summary>Track record &amp; backtest</summary>
+        <p>The <strong>track record</strong> panel scores every past lead from the day it
+        first surfaced: forward returns at 1 week / 1 month / 3 months, and whether price
+        reached Target&nbsp;1 before the stop. It updates daily and does not forget the
+        losers. The <strong>detector edge</strong> panel comes from a walk-forward backtest
+        (8 years of US data, weekly evaluation, ~23,000 points): each pattern's 21-day
+        win rate and average return next to the universe baseline — a pattern only has
+        edge if it beats the baseline. Survivorship bias applies and costs aren't
+        modelled, so treat both as honest gauges, not guarantees. Leads with
+        <strong>earnings inside 21 days</strong> carry a warning chip — a chart setup
+        means little against a binary event.</p>
+      </details>
+      <details class="fold">
+        <summary>Data sources &amp; limitations</summary>
+        <p>Daily history and fundamentals come from Yahoo Finance (free tier — strongest
+        for US large caps, price-only for crypto). Live crypto prices stream from Binance's
+        public WebSocket; the Fear &amp; Greed index comes from alternative.me; intraday
+        equity quotes are refreshed by a scheduled job and can be delayed. The engine sees
+        numbers only — no news, no earnings calls. Treat every lead as a prompt to dig
+        deeper, never as gospel.</p>
+      </details>
+      <details class="fold">
+        <summary>Glossary</summary>
+        <dl class="gloss">
+          <dt>RSI</dt><dd>0–100 momentum gauge. ~50 neutral; 50–70 healthy; 70+ overbought (caution).</dd>
+          <dt>MACD</dt><dd>Trend-momentum crossover of two exponential averages; a fresh bullish cross is an early turn signal.</dd>
+          <dt>ADX</dt><dd>Trend strength, direction-agnostic. Above 25 = trending; below 20 = chop.</dd>
+          <dt>ATR</dt><dd>Average daily trading range — the noise band. Stops and targets are sized in ATRs.</dd>
+          <dt>OBV</dt><dd>On-balance volume. Rising OBV ahead of price suggests quiet accumulation.</dd>
+          <dt>Bollinger squeeze</dt><dd>Volatility bands at their tightest in months — energy stored for a move.</dd>
+          <dt>Golden cross</dt><dd>50-day average crossing above the 200-day; a classic regime change.</dd>
+          <dt>Cup &amp; handle</dt><dd>A rounded base, a shallow pullback, price pressing the prior high: breakout-ready.</dd>
+          <dt>Quality / Moat / Value</dt><dd>Buffett-style reads: how good the business is, how defensible its profits are, and whether the price is reasonable.</dd>
+          <dt>Backing</dt><dd>Institutional + insider ownership — whether the smart money is already in.</dd>
+        </dl>
+      </details>
     </section>
   </main>
 
-  <footer class="disclaimer" role="contentinfo">
-    <p>Research leads only — not financial advice.</p>
+  <footer class="foot">
+    <p>Research leads only — not financial advice. No trades are executed.</p>
   </footer>
 
   <script src="./app.js" defer></script>

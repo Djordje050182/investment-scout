@@ -38,6 +38,8 @@
     meterLabel: document.getElementById("meter-label"),
     meterFill: document.getElementById("meter-fill"),
     meterWhy: document.getElementById("meter-why"),
+    meterContra: document.getElementById("meter-contra"),
+    meterMini: document.getElementById("meter-mini"),
     cbAmount: document.getElementById("cb-amount"),
     cbHorizon: document.getElementById("cb-horizon"),
     cbRisk: document.getElementById("cb-risk"),
@@ -139,7 +141,8 @@
     hbm: ["HBM (high-bandwidth memory)", "Special stacked memory chips bolted right next to AI processors so data arrives fast enough. The big 2025–26 bottleneck — demand outran supply and prices flew. Made by Micron, SK hynix, Samsung."],
     euv: ["EUV lithography", "The most precise machines ever built — they draw chip features with extreme ultraviolet light. One company on Earth makes them (ASML). No EUV, no advanced AI chips."],
     foundry: ["Foundry", "A factory that manufactures chips designed by others. TSMC makes the chips for Nvidia, AMD, Apple and nearly everyone — the single most indispensable company in the chain."],
-    meter: ["Today's conditions meter", "A 0–100 read on whether TODAY is a friendly day to put new money to work, blending: market regime, breadth, benchmark momentum, and the quality of today's signals. It measures conditions, not your situation — and it is absolutely not a promise."],
+    meter: ["Today's conditions meter", "Two reads in one box. The big number is the TRADER read (0–100): is today friendly for short-term money? It blends market regime, breadth, benchmark momentum and today's signal quality — it goes DOWN when markets are weak. Beneath it sits the LONG-HORIZON read, which works the other way around: deep fear and washed-out markets have historically been the best moments for multi-year money. Same day, two honest answers, because a trade and an investment are different questions."],
+    contrarian: ["Long-horizon (contrarian) read", "Baron Rothschild: 'Buy when there's blood in the streets.' Warren Buffett: 'Be greedy when others are fearful.' This dial scores how bloody the streets are right now — extreme fear, washed-out breadth, sharp drawdowns push it UP (better long-term entries); euphoria pushes it DOWN. It is about odds over years, not days: things can always get bloodier first, which is why it pairs with investing in chunks rather than all at once."],
     horizon: ["Time horizon", "When you might genuinely need this money back. The single most important input: money needed within a year should never ride in volatile assets, because you can be forced to sell at the worst moment."],
     risk_appetite: ["Risk appetite", "Honestly: how far can your investment fall before you panic-sell? Careful = a 15% drop would hurt. Balanced = can sit through 25%. Bold = can watch 40%+ vanish and not flinch. Be honest — overestimating this is the #1 amateur mistake."],
     spark: ["Sparkline", "A tiny 90-day price chart. Green = higher than 90 days ago, red = lower. Shape at a glance."],
@@ -304,14 +307,19 @@
     els.regime.title = "Market regime from benchmark trends + universe breadth";
   }
 
+  var fngValue = null;          // crypto Fear & Greed, feeds the contrarian dial
+
   function loadFearGreed() {
     fetch("https://api.alternative.me/fng/?limit=1")
       .then(function (r) { return r.json(); })
       .then(function (j) {
         var d = j && j.data && j.data[0];
         if (!d) return;
+        fngValue = Number(d.value);
         els.fng.hidden = false;
-        els.fng.querySelector(".fng__val").textContent = d.value + " · " + d.value_classification;
+        els.fng.querySelector(".fng__val").innerHTML =
+          esc(d.value) + ' <span class="fng__class">· ' + esc(d.value_classification) + "</span>";
+        renderMeter();          // re-render: fear/greed shifts the long-horizon read
       })
       .catch(function () { /* cosmetic; ignore */ });
   }
@@ -943,6 +951,16 @@
     b.addEventListener("click", function () { switchView(b.dataset.view); });
   });
 
+  // compact cmdbar meter: from any tab, jump to the full breakdown
+  var miniBtn = document.getElementById("meter-mini");
+  if (miniBtn) {
+    miniBtn.addEventListener("click", function () {
+      switchView("signals");
+      var meterEl = document.getElementById("buy-meter");
+      if (meterEl) meterEl.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  }
+
   function loadAI() {
     if (aiData || aiLoading) return;
     aiLoading = true;
@@ -1172,6 +1190,75 @@
     els.meterLabel.textContent = label;
     els.meterFill.style.width = score + "%";
     els.meterWhy.innerHTML = why.map(function (w) { return "<span>" + esc(w) + "</span>"; }).join("");
+
+    renderContrarian(m, b);
+
+    // always-visible compact meter in the command bar (works from any tab)
+    if (els.meterMini) {
+      els.meterMini.hidden = false;
+      els.meterMini.className = "meter-mini meter-mini--"
+        + (score >= 65 ? "good" : score >= 40 ? "mixed" : "caution");
+      els.meterMini.innerHTML = "<span>Today</span><b>" + score + "</b><span>" + esc(label) + "</span>";
+    }
+  }
+
+  // The Rothschild dial: "buy when there's blood in the streets."
+  // The trader meter above is trend-FOLLOWING (weak tape = caution for quick
+  // trades). This dial is the opposite read, for long-horizon money: deep
+  // fear, washed-out breadth and drawdowns have historically been GOOD entry
+  // points for multi-year positions — and euphoria a poor one.
+  function renderContrarian(market, breadthVal) {
+    if (!els.meterContra) return;
+    var score = 40;
+    var drivers = [];
+
+    if (fngValue != null) {
+      if (fngValue <= 25) { score += 25; drivers.push("crypto fear is extreme (" + fngValue + ")"); }
+      else if (fngValue <= 45) { score += 10; drivers.push("sentiment is fearful (" + fngValue + ")"); }
+      else if (fngValue >= 75) { score -= 15; drivers.push("sentiment is greedy (" + fngValue + ")"); }
+    }
+    if (breadthVal != null) {
+      if (breadthVal < 0.25) { score += 20; drivers.push("breadth washed out — only " + Math.round(breadthVal * 100) + "% above their 50-day"); }
+      else if (breadthVal < 0.40) { score += 10; drivers.push("breadth weak (" + Math.round(breadthVal * 100) + "%)"); }
+      else if (breadthVal > 0.80) { score -= 10; drivers.push("nearly everyone is already in (" + Math.round(breadthVal * 100) + "% breadth)"); }
+    }
+    var spy = market.benchmarks && market.benchmarks.SPY;
+    if (spy && spy.chg_1m != null) {
+      if (spy.chg_1m <= -0.08) { score += 20; drivers.push("S&P down " + fmtPct(Math.abs(spy.chg_1m)) + " in a month"); }
+      else if (spy.chg_1m <= -0.04) { score += 10; drivers.push("S&P pulling back"); }
+      else if (spy.chg_1m >= 0.08) { score -= 10; drivers.push("market running hot"); }
+    }
+    if (spy && spy.rsi14 != null) {
+      if (spy.rsi14 < 35) { score += 10; drivers.push("S&P oversold"); }
+      else if (spy.rsi14 > 70) { score -= 10; drivers.push("S&P overbought"); }
+    }
+
+    score = Math.round(Math.max(0, Math.min(100, score)));
+    var read, mood;
+    if (score >= 70) { read = "Blood on the streets"; mood = "hot"; }
+    else if (score >= 55) { read = "Fear is creeping in"; mood = "hot"; }
+    else if (score >= 40) { read = "Nothing special either way"; mood = ""; }
+    else { read = "Euphoria — patience usually pays"; mood = "cold"; }
+
+    var line;
+    if (score >= 70) {
+      line = "Markets are fearful — historically exactly when patient, multi-year money has done best. “Buy when there’s blood in the streets.” Scary and opportune usually arrive together.";
+    } else if (score >= 55) {
+      line = "Some fear is showing. For money you won’t need for years, weak days like these have tended to be better entries than confident ones.";
+    } else if (score >= 40) {
+      line = "Neither fear nor greed is extreme — no contrarian edge either way right now.";
+    } else {
+      line = "The crowd is confident and prices reflect it. Contrarian playbook: this is when you tighten up, not load up.";
+    }
+
+    els.meterContra.hidden = false;
+    els.meterContra.className = "meter__contra"
+      + (mood === "hot" ? " meter__contra--hot" : mood === "cold" ? " meter__contra--cold" : "");
+    els.meterContra.innerHTML =
+      '<span class="meter__contra-tag">' + termWrap("Long-horizon read", "contrarian") + "</span>"
+      + '<span class="meter__contra-num">' + score + "</span>"
+      + "<b>" + esc(read) + ".</b> <span>" + esc(line) + "</span>"
+      + (drivers.length ? ' <span style="color:var(--faint)">(' + esc(drivers.join("; ")) + ")</span>" : "");
   }
 
   // ---- Crystal Ball -------------------------------------------------------------
@@ -1276,16 +1363,24 @@
     var alloc = (ALLOC[cb.risk] || {})[cb.horizon] || ALLOC.balanced.medium;
     alloc = JSON.parse(JSON.stringify(alloc));
 
-    // regime adjustment: in a risk-off tape, pull risk down and hold more cash
+    // Regime adjustment — horizon decides WHICH playbook applies.
+    // Short/medium money in a risk-off tape: de-risk into cash (trend logic).
+    // 3+ year money in a risk-off tape: do NOT hide — fear has historically
+    // been a discount for patient buyers, not a danger sign (contrarian logic).
     var regime = data && data.market && data.market.regime;
     var regimeNote = "";
-    if (regime === "risk_off") {
+    if (regime === "risk_off" && cb.horizon !== "long") {
       var taken = 0;
       ["spec", "stocks", "theme"].forEach(function (k) {
         if (alloc[k]) { var cut = Math.round(alloc[k] * 0.25); alloc[k] -= cut; taken += cut; }
       });
       alloc.cash = (alloc.cash || 0) + taken;
-      regimeNote = "The market is risk-off right now, so this sketch holds " + taken + "pp more cash than usual.";
+      regimeNote = "The market is risk-off right now, so this sketch holds " + taken
+        + "pp more cash than usual — shorter-horizon money respects the trend.";
+    } else if (regime === "risk_off" && cb.horizon === "long") {
+      regimeNote = "The market is fearful right now — and this sketch deliberately is NOT hiding in cash, "
+        + "because for 3+ year money, fear has historically been a discount. “Buy when there’s "
+        + "blood in the streets.” Investing in chunks over weeks softens the risk that it gets bloodier first.";
     } else if (regime === "risk_on") {
       regimeNote = "The market is risk-on right now — conditions are friendlier than average for this sketch.";
     }

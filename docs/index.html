@@ -27,11 +27,11 @@
     </div>
 
     <div class="cmdbar__right">
-      <span class="regime" id="regime-pill" hidden>
+      <span class="regime t" id="regime-pill" data-term="regime" hidden>
         <span class="regime__dot" aria-hidden="true"></span>
         <span class="regime__text">—</span>
       </span>
-      <span class="fng" id="fng" hidden title="Crypto Fear &amp; Greed Index (alternative.me)">
+      <span class="fng t" id="fng" data-term="fng" hidden>
         <span class="fng__label">F&amp;G</span>
         <span class="fng__val">—</span>
       </span>
@@ -50,9 +50,23 @@
     <nav class="viewtabs" aria-label="Views">
       <button type="button" class="viewtab is-active" data-view="signals" aria-pressed="true">Signals</button>
       <button type="button" class="viewtab" data-view="ai" aria-pressed="false">AI&nbsp;Supply&nbsp;Chain</button>
+      <button type="button" class="viewtab" data-view="crystal" aria-pressed="false">Crystal&nbsp;Ball</button>
     </nav>
 
     <div id="view-signals">
+
+    <!-- ===================== Buy-conditions meter ===================== -->
+    <section class="meter" id="buy-meter" hidden aria-label="Market conditions meter">
+      <div class="meter__main">
+        <span class="meter__num" id="meter-num">—</span>
+        <div class="meter__text">
+          <span class="meter__label" id="meter-label">—</span>
+          <span class="meter__sub">conditions for putting new money to work today<button type="button" class="t t--q" data-term="meter">?</button></span>
+        </div>
+      </div>
+      <div class="meter__gauge"><span class="meter__fill" id="meter-fill"></span></div>
+      <div class="meter__why" id="meter-why"></div>
+    </section>
 
     <!-- ===================== Filters ===================== -->
     <section class="toolbar" aria-label="Filters">
@@ -81,7 +95,7 @@
           <span class="col-sym">Symbol</span>
           <span class="col-price">Last / Δ1d</span>
           <span class="col-spark"></span>
-          <span class="col-conv">Conviction</span>
+          <span class="col-conv"><button type="button" class="t" data-term="conviction">Conviction</button></span>
         </div>
         <div id="sigrows"></div>
         <div id="empty" class="empty" hidden>
@@ -145,7 +159,7 @@
 
       <section class="lower lower--airadar">
         <div class="panel panel--gold" id="catchup-panel">
-          <h2 class="panel__title">Catch-up radar <span class="panel__sub">the Micron pattern: hot layer, laggard not yet re-rated</span></h2>
+          <h2 class="panel__title"><button type="button" class="t" data-term="catchup">Catch-up radar</button> <span class="panel__sub">the Micron pattern: hot layer, laggard not yet re-rated</span></h2>
           <div id="catchup"></div>
         </div>
         <div class="panel" id="leaders-panel">
@@ -182,6 +196,65 @@
         chips simply disappear when a source is unavailable.</p>
       </details>
     </div><!-- /view-ai -->
+
+    <!-- ===================== Crystal Ball view ===================== -->
+    <div id="view-crystal" hidden>
+      <section class="aihead">
+        <div class="aihead__lede">
+          <h2 class="aihead__title">Crystal Ball</h2>
+          <p class="aihead__sub">Tell it how much, for how long, and how brave you're feeling — it sketches
+          a way to split the money using today's live data, in plain English, with every term explained.
+          It's a thinking tool, not a fortune teller: nobody has a crystal ball, including this one.</p>
+        </div>
+      </section>
+
+      <section class="cb-inputs panel">
+        <div class="cb-field">
+          <label class="cb-label" for="cb-amount">If I had this much to invest…</label>
+          <div class="cb-amount-wrap">
+            <span class="cb-cur">$</span>
+            <input type="number" id="cb-amount" min="100" step="100" value="10000" inputmode="numeric" />
+          </div>
+        </div>
+        <div class="cb-field">
+          <span class="cb-label">…for this long…<button type="button" class="t t--q" data-term="horizon">?</button></span>
+          <div class="seggroup" id="cb-horizon">
+            <button type="button" class="seg" data-value="short" aria-pressed="false">Under 1 year</button>
+            <button type="button" class="seg is-active" data-value="medium" aria-pressed="true">1–3 years</button>
+            <button type="button" class="seg" data-value="long" aria-pressed="false">3+ years</button>
+          </div>
+        </div>
+        <div class="cb-field">
+          <span class="cb-label">…and I'm feeling…<button type="button" class="t t--q" data-term="risk_appetite">?</button></span>
+          <div class="seggroup" id="cb-risk">
+            <button type="button" class="seg" data-value="careful" aria-pressed="false">Careful</button>
+            <button type="button" class="seg is-active" data-value="balanced" aria-pressed="true">Balanced</button>
+            <button type="button" class="seg" data-value="bold" aria-pressed="false">Bold</button>
+          </div>
+        </div>
+      </section>
+
+      <div id="cb-output"></div>
+
+      <section class="panel" id="strategy-panel">
+        <h2 class="panel__title">The Strategy (MicroStrategy) family <span class="panel__sub">bitcoin treasury — explained simply</span></h2>
+        <div id="strategy-family"></div>
+      </section>
+
+      <details class="fold" style="margin-top:14px">
+        <summary>How the Crystal Ball decides — and what it can't know</summary>
+        <p>The split starts from your <strong>risk appetite</strong> (how much of a fall you can stomach
+        without selling), shifts with your <strong>time horizon</strong> (short money should never be in
+        volatile things), and then adjusts for <strong>today's market regime</strong> from the Signals
+        engine (in a risk-off tape it holds more cash). Specific names come from live data: the
+        strongest conviction signals, the AI chain's catch-up radar, and the hottest theme ETFs.
+        Percentages are rounded and deliberately boring — diversification is the only free lunch in
+        investing. What it can't know: your debts, your job security, your tax situation, tomorrow's
+        news, or anything else that actually matters to real financial decisions. <strong>This is an
+        educational sketch, not financial advice.</strong> If the amount is meaningful to you, talk to
+        a licensed adviser.</p>
+      </details>
+    </div><!-- /view-crystal -->
 
     <!-- ===================== About / methodology ===================== -->
     <section class="about" id="about">
@@ -260,6 +333,18 @@
   <footer class="foot">
     <p>Research leads only — not financial advice. No trades are executed.</p>
   </footer>
+
+  <!-- term explainer popover -->
+  <div class="termpop" id="termpop" hidden role="dialog" aria-modal="true" aria-labelledby="termpop-title">
+    <div class="termpop__backdrop" data-termpop-close></div>
+    <div class="termpop__card">
+      <div class="termpop__head">
+        <h3 class="termpop__title" id="termpop-title">—</h3>
+        <button type="button" class="termpop__close" data-termpop-close aria-label="Close">✕</button>
+      </div>
+      <p class="termpop__body" id="termpop-body">—</p>
+    </div>
+  </div>
 
   <script src="./app.js" defer></script>
 </body>

@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-06-26T21:07:33Z",
+  "updated_at": "2026-06-26T22:46:39Z",
   "quotes": {
     "AAPL": {
       "price": 283.78,
@@ -362,52 +362,52 @@
       "chg_1d": 0.0188
     },
     "BTC-USD": {
-      "price": 59600.0,
-      "chg_1d": -0.002
+      "price": 59842.7,
+      "chg_1d": 0.002
     },
     "ETH-USD": {
-      "price": 1566.87,
-      "chg_1d": 0.0013
+      "price": 1572.85,
+      "chg_1d": 0.0051
     },
     "SOL-USD": {
-      "price": 71.74,
-      "chg_1d": 0.0616
+      "price": 71.64,
+      "chg_1d": 0.0602
     },
     "BNB-USD": {
-      "price": 564.04,
-      "chg_1d": 0.0076
+      "price": 566.9,
+      "chg_1d": 0.0127
     },
     "XRP-USD": {
       "price": 1.04,
-      "chg_1d": -0.0022
+      "chg_1d": 0.0022
     },
     "ADA-USD": {
-      "price": 0.1468,
-      "chg_1d": 0.0235
+      "price": 0.1469,
+      "chg_1d": 0.0242
     },
     "DOGE-USD": {
-      "price": 0.07516,
-      "chg_1d": 0.005
+      "price": 0.07544,
+      "chg_1d": 0.0087
     },
     "AVAX-USD": {
-      "price": 6.33,
-      "chg_1d": 0.0174
+      "price": 6.53,
+      "chg_1d": 0.0495
     },
     "LINK-USD": {
-      "price": 7.28,
-      "chg_1d": 0.0071
+      "price": 7.31,
+      "chg_1d": 0.0111
     },
     "DOT-USD": {
-      "price": 0.852,
-      "chg_1d": 0.0122
+      "price": 0.851,
+      "chg_1d": 0.011
     },
     "LTC-USD": {
-      "price": 41.64,
-      "chg_1d": 0.0193
+      "price": 41.83,
+      "chg_1d": 0.0239
     },
     "ATOM-USD": {
-      "price": 1.58,
-      "chg_1d": -0.0159
+      "price": 1.59,
+      "chg_1d": -0.0116
     },
     "SPY": {
       "price": 728.99,

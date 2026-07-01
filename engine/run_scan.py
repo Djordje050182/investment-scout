@@ -245,12 +245,26 @@ def build_suggestions(adapter: DataAdapter, symbols: List[str]) -> List[Dict]:
     return build_scan(adapter, symbols)["suggestions"]
 
 
+def _no_nan(x):
+    """Replace NaN/Inf with None recursively. json.dumps happily writes literal
+    NaN, which is NOT valid JSON — one holiday gap in a benchmark once broke
+    the whole dashboard's fetch. Never again."""
+    if isinstance(x, float) and (math.isnan(x) or math.isinf(x)):
+        return None
+    if isinstance(x, dict):
+        return {k: _no_nan(v) for k, v in x.items()}
+    if isinstance(x, list):
+        return [_no_nan(v) for v in x]
+    return x
+
+
 def write_output(payload: Dict, out_file: str, history_dir: str) -> None:
     """Write signals.json and a dated history snapshot. Only called on success.
 
     History snapshots drop the heavy per-suggestion chart payloads to keep the
     repo small; the latest signals.json keeps them for the dashboard.
     """
+    payload = _no_nan(payload)
     os.makedirs(os.path.dirname(out_file), exist_ok=True)
     os.makedirs(history_dir, exist_ok=True)
     # compact JSON: chart arrays make indented output ~10x larger in git

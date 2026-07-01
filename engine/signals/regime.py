@@ -30,7 +30,11 @@ def benchmark_read(prices: pd.DataFrame) -> Optional[Dict]:
     """Trend read for one benchmark: price, changes, trend state."""
     if prices is None or len(prices) < 30:
         return None
-    close = prices["Close"].astype("float64")
+    # drop NaN closes (exchange holidays leave gaps) — a NaN last price would
+    # serialise as literal NaN, which is invalid JSON and breaks the dashboard
+    close = prices["Close"].astype("float64").dropna()
+    if len(close) < 30:
+        return None
     price = float(close.iloc[-1])
     s50 = sma(close, 50)
     s200 = sma(close, 200)

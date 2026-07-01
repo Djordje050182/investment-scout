@@ -57,6 +57,14 @@
     record: document.getElementById("record"),
     edgePanel: document.getElementById("edge-panel"),
     edge: document.getElementById("edge"),
+    viewLegends: document.getElementById("view-legends"),
+    lgMeta: document.getElementById("lg-meta"),
+    lgSummary: document.getElementById("lg-summary"),
+    lgAmount: document.getElementById("lg-amount"),
+    lgBasket: document.getElementById("lg-basket"),
+    lgChanges: document.getElementById("lg-changes"),
+    lgInsiders: document.getElementById("lg-insiders"),
+    lgManagers: document.getElementById("lg-managers"),
   };
 
   // ---- State ----------------------------------------------------------
@@ -153,6 +161,13 @@
     trend: ["Trend", "The backdrop: moving-average structure and trend strength. Good setups in bad trends fail more."],
     momentum: ["Momentum", "Shorter-term push: RSI, MACD and the last month's pace."],
     volume_sub: ["Volume", "Whether trading activity supports the move — recent volume vs normal, and whether volume flows in on up-days."],
+    thirteen_f: ["13F filing", "The quarterly homework every big US fund must hand in: a public list of every US-listed stock it owns, with sizes. It's how the world knows what Buffett is buying. Catch: it arrives up to 45 days after the quarter ends, and shows no cash, bonds, shorts or private stakes."],
+    own_money: ["Insider buying (Form 4)", "When an executive or director trades their OWN company's stock, they must report it within two days on a Form 4. Sales happen for a thousand reasons (tax, houses, divorces) — but open-market BUYS happen for only one: they think it's going up. That's why we only track the buys."],
+    conviction_points: ["Conviction points", "How strongly the legends as a group believe in a name. Each manager contributes their portfolio weight in it — Buffett holding Apple at 22% of his book adds 22 points; a 0.4% flyer adds 0.4. Held big by several legends = a very loud signal."],
+    cash_pile: ["Cash pile", "Money a fund holds back instead of investing. When the world's most patient buyer builds a mountain of cash, it usually means they can't find anything cheap — historically a caution sign for everyone else's prices too. When they start spending it, pay attention."],
+    activist: ["Activist investor", "Buys a big stake and then pushes management to change things — sell a division, buy back shares, replace the CEO. The stake itself is the argument: they profit only if the changes work."],
+    family_office: ["Family office", "A private firm that manages one wealthy family's own money — no outside clients, no fees to chase, nothing to prove. Often the purest read of what a great investor really believes."],
+    as_of_quarter: ["As-of date", "13Fs photograph the portfolio on the last day of the quarter and can be filed up to 45 days later. So this is what they held THEN — they may have traded since. The winds-of-change feed exists precisely to catch the next photograph the day it develops."],
   };
 
   function termAttr(key) { return GLOSS[key] ? ' data-term="' + key + '"' : ""; }
@@ -935,15 +950,23 @@
     els.viewSignals.hidden = view !== "signals";
     els.viewAI.hidden = view !== "ai";
     els.viewCrystal.hidden = view !== "crystal";
+    if (els.viewLegends) els.viewLegends.hidden = view !== "legends";
     document.querySelectorAll(".viewtab").forEach(function (b) {
       var active = b.dataset.view === view;
       b.classList.toggle("is-active", active);
       b.setAttribute("aria-pressed", String(active));
+      // the tab strip scrolls horizontally on phones — keep the active tab visible
+      if (active && b.scrollIntoView) {
+        try { b.scrollIntoView({ block: "nearest", inline: "nearest" }); } catch (e) {}
+      }
     });
     if (view === "ai" || view === "crystal") loadAI();   // crystal uses chain data too
     if (view === "crystal") renderCrystal();
+    if (view === "legends") loadLegends();
     try {
-      history.replaceState(null, "", view === "ai" ? "#ai" : view === "crystal" ? "#crystal" : "#");
+      history.replaceState(null, "",
+        view === "ai" ? "#ai" : view === "crystal" ? "#crystal"
+        : view === "legends" ? "#legends" : "#");
     } catch (e) {}
   }
 
@@ -1143,6 +1166,229 @@
     });
   }
 
+  // ---- Legends (capital allocators) --------------------------------------------
+  var legData = null;
+  var legLoading = false;
+  var lgAmount = 10000;
+
+  function loadLegends() {
+    if (legData || legLoading) return;
+    legLoading = true;
+    fetch("./data/allocators.json", { cache: "no-store" })
+      .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
+      .then(function (j) { legData = j; renderLegends(); renderMeter(); })
+      .catch(function (e) {
+        console.error("SCOUT: allocators.json failed", e);
+        legLoading = false;
+        if (els.lgManagers) els.lgManagers.innerHTML =
+          '<p class="radar__empty">Legends data not available yet — it generates with the daily scan.</p>';
+      });
+  }
+
+  function bigMoney(x) {
+    if (x == null || isNaN(x)) return "—";
+    if (x >= 1e12) return "$" + (x / 1e12).toFixed(2) + "T";
+    if (x >= 1e9) return "$" + (x / 1e9).toFixed(1) + "B";
+    if (x >= 1e6) return "$" + (x / 1e6).toFixed(0) + "M";
+    return "$" + Math.round(x).toLocaleString();
+  }
+
+  function fmtQuarter(iso) {
+    if (!iso || iso.length < 7) return "—";
+    return "Q" + Math.ceil(+iso.slice(5, 7) / 3) + " " + iso.slice(0, 4);
+  }
+
+  function surname(person) {
+    var parts = person.split(" ");
+    return parts[parts.length - 1];
+  }
+
+  var CHG_META = {
+    new: { label: "NEW BUY", cls: "chg--new" },
+    exit: { label: "SOLD OUT", cls: "chg--exit" },
+    added: { label: "ADDED", cls: "chg--added" },
+    trimmed: { label: "TRIMMED", cls: "chg--trim" },
+  };
+
+  function renderLegends() {
+    if (!legData) return;
+    var mgrs = legData.managers || [];
+
+    // meta: combined tracked value + freshest quarter
+    var totTracked = 0, newest = "";
+    mgrs.forEach(function (m) {
+      totTracked += m.total_value || 0;
+      if (m.as_of > newest) newest = m.as_of;
+    });
+    els.lgMeta.innerHTML = mgrs.length + " legendary allocators tracked"
+      + "<br>" + bigMoney(totTracked) + " of disclosed positions"
+      + "<br>" + termWrap("as of " + fmtQuarter(newest), "as_of_quarter")
+      + " · re-checked daily";
+
+    // summary strip: are the winds changing?
+    var s = legData.summary || {};
+    var chips = [];
+    if (s.net_activity) {
+      var netTxt = s.net_activity === "adding"
+        ? "net <b>BUYING</b> last quarter — " + s.buys + " buys/adds vs " + s.sells + " exits/trims"
+        : s.net_activity === "pulling_back"
+        ? "net <b>PULLING BACK</b> last quarter — " + s.sells + " exits/trims vs " + s.buys + " buys/adds"
+        : "<b>mixed</b> last quarter — " + s.buys + " buys/adds, " + s.sells + " exits/trims";
+      chips.push('<span class="pulse__chip">The roster was ' + netTxt + "</span>");
+    }
+    var brk = legData.berkshire || {};
+    if (brk.cash_now) {
+      var dirTxt = brk.cash_dir === "building" ? '<b class="down">building</b>'
+        : brk.cash_dir === "deploying" ? '<b class="up">being spent</b>' : "roughly flat";
+      chips.push('<span class="pulse__chip">Berkshire’s '
+        + '<button type="button" class="t" data-term="cash_pile">cash pile</button> is '
+        + bigMoney(brk.cash_now) + " and " + dirTxt + "</span>");
+    }
+    els.lgSummary.hidden = chips.length === 0;
+    els.lgSummary.innerHTML = '<span class="pulse__label">Winds check</span>' + chips.join("")
+      + '<span class="pulse__src">quarter-over-quarter, from the latest filings</span>';
+
+    renderLgBasket();
+    renderLgChanges();
+    renderLgInsiders();
+    renderLgManagers();
+  }
+
+  function renderLgBasket() {
+    if (!legData || !els.lgBasket) return;
+    var basket = legData.basket || [];
+    if (!basket.length) {
+      els.lgBasket.innerHTML = '<p class="radar__empty">No consensus basket available.</p>';
+      return;
+    }
+    var head = '<div class="lgb lgb--head"><span>Ticker</span><span>Company</span>'
+      + "<span>" + termWrap("Conviction", "conviction_points") + "</span>"
+      + "<span>Split</span><span>Your $</span><span>Held by</span></div>";
+    els.lgBasket.innerHTML = head + basket.map(function (b) {
+      var held = b.held_by.slice(0, 3).map(function (h) {
+        return '<span class="heldby">' + esc(surname(h.person)) + " " + h.pct.toFixed(1) + "%</span>";
+      }).join("");
+      if (b.held_by.length > 3) held += '<span class="heldby heldby--more">+' + (b.held_by.length - 3) + " more</span>";
+      return '<div class="lgb">'
+        + '<span class="lgb__sym">' + esc(b.ticker) + "</span>"
+        + '<span class="lgb__name">' + esc(b.name) + "</span>"
+        + '<span class="lgb__pts">' + b.points.toFixed(0) + "</span>"
+        + "<span>" + (b.weight * 100).toFixed(1) + "%</span>"
+        + "<b>" + money(lgAmount * b.weight) + "</b>"
+        + '<span class="lgb__held">' + held + "</span>"
+        + "</div>";
+    }).join("")
+    + '<p class="cb-note">Conviction-weighted from the roster’s latest filings: a name scores by how many '
+    + "legends hold it and how big they’ve made it in their own book. Remember they bought weeks before "
+    + "you could see it — copy the thinking, not the timing. Not advice.</p>";
+  }
+
+  function renderLgChanges() {
+    var feed = (legData.changes || []).slice(0, 22);
+    if (!feed.length) {
+      els.lgChanges.innerHTML = '<p class="cu__empty">No notable changes in the latest filings.</p>';
+      return;
+    }
+    els.lgChanges.innerHTML = feed.map(function (c) {
+      var meta = CHG_META[c.type] || { label: c.type, cls: "" };
+      var what = (c.ticker ? "<b>" + esc(c.ticker) + "</b> " : "") + esc(c.name)
+        + (c.put_call ? " (" + esc(c.put_call) + "S)" : "");
+      var size = c.type === "exit"
+        ? "was " + c.pct.toFixed(1) + "% of the book"
+        : c.pct.toFixed(1) + "% of the book" + (c.swing != null ? " · " + (c.swing > 0 ? "+" : "") + c.swing + "% shares" : "");
+      return '<div class="chg">'
+        + '<span class="chg__type ' + meta.cls + '">' + meta.label + "</span>"
+        + '<span class="chg__who">' + esc(surname(c.manager)) + "</span>"
+        + '<span class="chg__what">' + what + '<span class="chg__size">' + esc(size) + "</span></span>"
+        + '<span class="chg__when">' + esc(fmtQuarter(c.as_of)) + "</span>"
+        + "</div>";
+    }).join("");
+  }
+
+  function renderLgInsiders() {
+    var ins = (legData.insiders || []).slice(0, 12);
+    if (!ins.length) {
+      els.lgInsiders.innerHTML = '<p class="cu__empty">No large open-market buys by watched executives '
+        + "in the last four months. Silence is also information — insiders buy when they see value.</p>";
+      return;
+    }
+    els.lgInsiders.innerHTML = ins.map(function (b) {
+      return '<div class="chg chg--insider">'
+        + '<span class="chg__type chg--new">BOUGHT</span>'
+        + '<span class="chg__who">' + esc(b.ticker) + "</span>"
+        + '<span class="chg__what">' + esc(b.owner)
+        + '<span class="chg__size">' + esc(b.title) + " · " + esc(b.company) + "</span></span>"
+        + '<span class="chg__val"><b>' + bigMoney(b.value) + "</b> @ $" + b.price + "</span>"
+        + '<span class="chg__when">' + esc(b.date || b.filed) + "</span>"
+        + "</div>";
+    }).join("")
+    + '<p class="cb-note">Open-market purchases only (SEC Form 4, code P) — executives spending their own money '
+    + "on their own stock. Sales are ignored: people sell for a thousand reasons, they buy for one.</p>";
+  }
+
+  function renderLgManagers() {
+    var mgrs = legData.managers || [];
+    var brk = legData.berkshire || {};
+    els.lgManagers.innerHTML = '<h2 class="panel__title" style="margin:18px 0 10px">The roster '
+      + '<span class="panel__sub">each legend’s book — top holdings as % of portfolio</span></h2>'
+      + '<div class="lg-grid">'
+      + mgrs.map(function (m) {
+        var bars = (m.holdings || []).slice(0, 5).map(function (h) {
+          var label = h.ticker || h.name.split(" ").slice(0, 2).join(" ");
+          return '<div class="mbar">'
+            + '<span class="mbar__sym">' + esc(label) + (h.put_call ? " (" + esc(h.put_call) + ")" : "") + "</span>"
+            + '<span class="mbar__track"><span class="mbar__fill" style="width:'
+            + Math.min(100, h.pct * 3.3) + '%"></span></span>'
+            + '<span class="mbar__pct">' + h.pct.toFixed(1) + "%</span>"
+            + "</div>";
+        }).join("");
+        var chgChips = (m.changes || []).slice(0, 4).map(function (c) {
+          var meta = CHG_META[c.type] || { label: c.type, cls: "" };
+          return '<span class="mchg ' + meta.cls + '">' + meta.label + " "
+            + esc(c.ticker || c.name.split(" ")[0]) + "</span>";
+        }).join("");
+        var mixHtml = "";
+        if (m.key === "berkshire" && brk.mix && brk.mix.length) {
+          var mixTot = brk.mix.reduce(function (a, x) { return a + x.value; }, 0);
+          var MIX_COLORS = { "Cash & equivalents": "#4c5563", "Listed shares": "#d2a85e",
+            "Bonds": "#a18ae6", "Big minority stakes": "#5aa9e6" };
+          mixHtml = '<div class="mixwrap"><span class="mbar__sym">' + termWrap("Asset mix", "cash_pile") + "</span>"
+            + '<div class="mixbar">' + brk.mix.map(function (x) {
+                return '<span style="width:' + (100 * x.value / mixTot).toFixed(1)
+                  + "%;background:" + (MIX_COLORS[x.label] || "#666") + '" title="'
+                  + esc(x.label + " " + bigMoney(x.value)) + '"></span>';
+              }).join("") + "</div>"
+            + '<div class="mixlegend">' + brk.mix.map(function (x) {
+                return '<span><i style="background:' + (MIX_COLORS[x.label] || "#666") + '"></i>'
+                  + esc(x.label) + " <b>" + bigMoney(x.value) + "</b></span>";
+              }).join("") + "</div>"
+            + "<p class=\"mcard__note\">Plus the wholly-owned businesses (railroad, insurance, energy) the market never sees in a 13F.</p></div>";
+        }
+        var stale = m.as_of < "2026" ? ' <span class="mcard__stale">older filing</span>' : "";
+        return '<article class="mcard">'
+          + '<header class="mcard__head"><div>'
+          + '<h3 class="mcard__person">' + esc(m.person) + "</h3>"
+          + '<span class="mcard__fund">' + esc(m.fund) + "</span></div>"
+          + '<span class="mcard__style">' + esc(m.style) + "</span>"
+          + "</header>"
+          + '<p class="mcard__bio">' + esc(m.bio) + "</p>"
+          + '<div class="mcard__stats">' + bigMoney(m.total_value) + " disclosed · "
+          + m.positions + " positions · " + esc(fmtQuarter(m.as_of)) + stale + "</div>"
+          + '<div class="mcard__bars">' + bars + "</div>"
+          + mixHtml
+          + (chgChips ? '<div class="mcard__chgs">' + chgChips + "</div>" : "")
+          + "</article>";
+      }).join("")
+      + "</div>";
+  }
+
+  if (els.lgAmount) {
+    els.lgAmount.addEventListener("input", function () {
+      var v = parseFloat(els.lgAmount.value);
+      if (isFinite(v) && v > 0) { lgAmount = v; renderLgBasket(); }
+    });
+  }
+
   // ---- "Good buy today" conditions meter --------------------------------------
   function renderMeter() {
     if (!data) return;
@@ -1179,6 +1425,16 @@
       why.push("no signals cleared the bar today");
     }
     score += Math.min(10, sugs.filter(function (s) { return s.conviction >= 75; }).length * 2.5);
+
+    // what the legends did with their own books last quarter (Legends tab)
+    if (legData && legData.summary) {
+      var ls = legData.summary;
+      if (ls.net_activity === "adding") {
+        score += 4; why.push("the investing legends were net buyers last quarter");
+      } else if (ls.net_activity === "pulling_back") {
+        score -= 4; why.push("the investing legends were net sellers last quarter");
+      }
+    }
 
     score = Math.round(Math.max(0, Math.min(100, score)));
     var label = score >= 65 ? "Favourable" : score >= 40 ? "Mixed" : "Caution";
@@ -1231,6 +1487,11 @@
     if (spy && spy.rsi14 != null) {
       if (spy.rsi14 < 35) { score += 10; drivers.push("S&P oversold"); }
       else if (spy.rsi14 > 70) { score -= 10; drivers.push("S&P overbought"); }
+    }
+    if (legData && legData.berkshire) {
+      var cashDir = legData.berkshire.cash_dir;
+      if (cashDir === "building") { score -= 5; drivers.push("Berkshire is hoarding cash — the most patient buyer can't find bargains"); }
+      else if (cashDir === "deploying") { score += 8; drivers.push("Berkshire is spending its cash pile — the most patient buyer sees value"); }
     }
 
     score = Math.round(Math.max(0, Math.min(100, score)));
@@ -1528,8 +1789,10 @@
     startLive();
     pollQuotes();
     loadFearGreed();
+    loadLegends();   // feeds the meter's legends read; renders the tab when opened
     if (location.hash === "#ai") switchView("ai");
     if (location.hash === "#crystal") switchView("crystal");
+    if (location.hash === "#legends") switchView("legends");
   }
 
   wireSegmented(els.marketFilter, "market");

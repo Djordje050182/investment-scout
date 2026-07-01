@@ -55,6 +55,7 @@
       <button type="button" class="viewtab is-active" data-view="signals" aria-pressed="true">Signals</button>
       <button type="button" class="viewtab" data-view="ai" aria-pressed="false">AI&nbsp;Supply&nbsp;Chain</button>
       <button type="button" class="viewtab" data-view="crystal" aria-pressed="false">Crystal&nbsp;Ball</button>
+      <button type="button" class="viewtab" data-view="legends" aria-pressed="false">Legends</button>
     </nav>
 
     <div id="view-signals">
@@ -260,6 +261,69 @@
         a licensed adviser.</p>
       </details>
     </div><!-- /view-crystal -->
+
+    <!-- ===================== Legends (capital allocators) view ===================== -->
+    <div id="view-legends" hidden>
+      <section class="aihead">
+        <div class="aihead__lede">
+          <h2 class="aihead__title">What the best investors in the world own right now</h2>
+          <p class="aihead__sub">Every big US fund must publish its portfolio quarterly on an
+          <button type="button" class="t" data-term="thirteen_f">SEC 13F filing</button> — the only legal
+          window into what the greatest capital allocators actually hold. This tab tracks a hand-picked
+          roster of legends, distils their combined conviction into a copy-able basket, and raises a flag
+          the day any of them changes course.</p>
+        </div>
+        <div class="aihead__meta" id="lg-meta"></div>
+      </section>
+
+      <div class="pulse" id="lg-summary" hidden></div>
+
+      <section class="panel panel--gold" id="lg-basket-panel">
+        <h2 class="panel__title">Copy the legends <span class="panel__sub">their combined highest-conviction names, split for your amount</span></h2>
+        <div class="cb-field lg-amount">
+          <label class="cb-label" for="lg-amount">If I had this much to allocate…</label>
+          <div class="cb-amount-wrap">
+            <span class="cb-cur">$</span>
+            <input type="number" id="lg-amount" min="100" step="100" value="10000" inputmode="numeric" />
+          </div>
+        </div>
+        <div id="lg-basket"></div>
+      </section>
+
+      <section class="lower lower--airadar">
+        <div class="panel" id="lg-changes-panel">
+          <h2 class="panel__title">The winds are changing <span class="panel__sub">every new buy, exit and big trim from the latest filings</span></h2>
+          <div id="lg-changes"></div>
+        </div>
+        <div class="panel" id="lg-insiders-panel">
+          <h2 class="panel__title"><button type="button" class="t" data-term="own_money">Insider conviction</button> <span class="panel__sub">executives buying their own stock with their own money</span></h2>
+          <div id="lg-insiders"></div>
+        </div>
+      </section>
+
+      <section id="lg-managers"></section>
+
+      <details class="fold" style="margin-top:14px">
+        <summary>Where this data comes from — and what it can't see</summary>
+        <p>Portfolios come from <strong>SEC 13F filings</strong> — the quarterly disclosure every US
+        institutional manager over $100m must make. It's the exact data the professionals' "whale
+        watching" desks use, pulled straight from the source. Its blind spots, honestly:
+        13Fs land <strong>up to 45 days after quarter end</strong>, show <strong>US-listed stocks
+        only</strong>, and say nothing about cash, bonds, shorts or private stakes. Berkshire's
+        cash pile and asset mix come separately from its quarterly accounts (10-Q).
+        <strong>Why no Musk or Dimon portfolio?</strong> Founders and CEOs don't publish their wealth —
+        it mostly sits in their own companies. What they DO have to disclose is buying and selling
+        their own stock (Form 4). That's the insider-conviction panel: an executive spending serious
+        personal money on their own shares is one of the most honest signals in markets — nobody
+        knows the business better.</p>
+        <p>The <strong>Copy-the-legends basket</strong> is conviction-weighted: a stock scores by how
+        many legends hold it AND how big they've made it in their own book — Buffett at 22% in Apple
+        counts far more than a fund's 0.4% flyer. No single name takes more than 20% of the basket.
+        The engine re-checks EDGAR daily, so a new filing shows up here within a day — but remember
+        the legends bought these weeks before you can see them. Copying gets you their thinking,
+        never their entry price. <strong>None of this is advice.</strong></p>
+      </details>
+    </div><!-- /view-legends -->
 
     <!-- ===================== About / methodology ===================== -->
     <section class="about" id="about">

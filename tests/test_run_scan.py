@@ -89,6 +89,24 @@ def test_write_output_creates_valid_json(tmp_path):
     assert "chart" not in hist["suggestions"][0]
 
 
+def test_write_output_sanitises_nan(tmp_path):
+    # a NaN benchmark price once serialised as literal NaN — invalid JSON
+    # that broke the dashboard's fetch. It must become null.
+    payload = {
+        "scanned_at": "2026-07-01T21:30:00Z",
+        "suggestions": [],
+        "market": {"benchmarks": {"^AXJO": {"price": float("nan"),
+                                            "chg_1d": float("inf")}}},
+    }
+    out_file = tmp_path / "signals.json"
+    write_output(payload, str(out_file), str(tmp_path / "history"))
+    text = out_file.read_text()
+    assert "NaN" not in text and "Infinity" not in text
+    data = json.loads(text)
+    assert data["market"]["benchmarks"]["^AXJO"]["price"] is None
+    assert data["market"]["benchmarks"]["^AXJO"]["chg_1d"] is None
+
+
 def test_build_scan_emits_radar_movers_and_charts():
     from engine.run_scan import build_scan
     from tests.fixtures import uptrend_closes

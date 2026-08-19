@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-08-19T20:31:43Z",
+  "updated_at": "2026-08-19T21:27:55Z",
   "quotes": {
     "AAPL": {
       "price": 316.83,
@@ -266,148 +266,148 @@
       "chg_1d": 0.1268
     },
     "BHP.AX": {
-      "price": 63.85,
-      "chg_1d": 0.0265
+      "price": 63.71,
+      "chg_1d": -0.0022
     },
     "CBA.AX": {
-      "price": 162.63,
-      "chg_1d": -0.0144
+      "price": 160.71,
+      "chg_1d": -0.0118
     },
     "CSL.AX": {
-      "price": 157.82,
-      "chg_1d": 0.1725
+      "price": 166.48,
+      "chg_1d": 0.0549
     },
     "NAB.AX": {
-      "price": 39.2,
-      "chg_1d": -0.0066
+      "price": 38.92,
+      "chg_1d": -0.0071
     },
     "WBC.AX": {
-      "price": 34.66,
-      "chg_1d": -0.0117
+      "price": 34.44,
+      "chg_1d": -0.0063
     },
     "ANZ.AX": {
-      "price": 37.68,
-      "chg_1d": -0.0053
+      "price": 37.62,
+      "chg_1d": -0.0016
     },
     "WES.AX": {
-      "price": 84.22,
-      "chg_1d": -0.0073
+      "price": 84.26,
+      "chg_1d": 0.0005
     },
     "MQG.AX": {
-      "price": 255.42,
-      "chg_1d": -0.0199
+      "price": 254.21,
+      "chg_1d": -0.0047
     },
     "GMG.AX": {
-      "price": 30.47,
-      "chg_1d": 0.0304
+      "price": 29.22,
+      "chg_1d": -0.041
     },
     "WOW.AX": {
-      "price": 39.48,
-      "chg_1d": -0.0182
+      "price": 39.72,
+      "chg_1d": 0.0061
     },
     "TLS.AX": {
       "price": 4.74,
-      "chg_1d": -0.0146
+      "chg_1d": 0.0
     },
     "RIO.AX": {
-      "price": 167.4,
-      "chg_1d": -0.0055
+      "price": 169.97,
+      "chg_1d": 0.0154
     },
     "FMG.AX": {
-      "price": 17.68,
-      "chg_1d": -0.0039
+      "price": 18.06,
+      "chg_1d": 0.0215
     },
     "WDS.AX": {
-      "price": 33.16,
-      "chg_1d": 0.0094
+      "price": 33.55,
+      "chg_1d": 0.0118
     },
     "TCL.AX": {
-      "price": 13.91,
-      "chg_1d": -0.0114
+      "price": 14.01,
+      "chg_1d": 0.0072
     },
     "XRO.AX": {
-      "price": 82.75,
-      "chg_1d": 0.0078
-    },
-    "WTC.AX": {
-      "price": 43.35,
-      "chg_1d": 0.0255
-    },
-    "COL.AX": {
-      "price": 23.15,
-      "chg_1d": -0.0124
-    },
-    "STO.AX": {
-      "price": 8.11,
-      "chg_1d": 0.0075
-    },
-    "QBE.AX": {
-      "price": 22.66,
-      "chg_1d": -0.0004
-    },
-    "ALL.AX": {
-      "price": 63.41,
-      "chg_1d": -0.0169
-    },
-    "REA.AX": {
-      "price": 178.62,
+      "price": 83.33,
       "chg_1d": 0.007
     },
+    "WTC.AX": {
+      "price": 39.58,
+      "chg_1d": -0.087
+    },
+    "COL.AX": {
+      "price": 23.28,
+      "chg_1d": 0.0056
+    },
+    "STO.AX": {
+      "price": 8.31,
+      "chg_1d": 0.0247
+    },
+    "QBE.AX": {
+      "price": 22.67,
+      "chg_1d": 0.0004
+    },
+    "ALL.AX": {
+      "price": 62.67,
+      "chg_1d": -0.0117
+    },
+    "REA.AX": {
+      "price": 179.0,
+      "chg_1d": 0.0021
+    },
     "CAR.AX": {
-      "price": 29.1,
-      "chg_1d": -0.0166
+      "price": 29.0,
+      "chg_1d": -0.0034
     },
     "PME.AX": {
-      "price": 196.75,
-      "chg_1d": 0.1188
+      "price": 198.85,
+      "chg_1d": 0.0107
     },
     "BTC-USD": {
-      "price": 68673.12,
-      "chg_1d": 0.0617
+      "price": 69574.03,
+      "chg_1d": 0.0757
     },
     "ETH-USD": {
-      "price": 2122.27,
-      "chg_1d": 0.1074
+      "price": 2268.95,
+      "chg_1d": 0.1839
     },
     "SOL-USD": {
-      "price": 82.48,
-      "chg_1d": 0.0707
+      "price": 86.9,
+      "chg_1d": 0.1281
     },
     "BNB-USD": {
-      "price": 617.92,
-      "chg_1d": 0.0238
+      "price": 629.61,
+      "chg_1d": 0.0432
     },
     "XRP-USD": {
-      "price": 1.08,
-      "chg_1d": 0.0787
+      "price": 1.12,
+      "chg_1d": 0.1152
     },
     "ADA-USD": {
-      "price": 0.18171,
-      "chg_1d": 0.0427
+      "price": 0.19101,
+      "chg_1d": 0.0961
     },
     "DOGE-USD": {
-      "price": 0.07319,
-      "chg_1d": 0.0424
+      "price": 0.07601,
+      "chg_1d": 0.0826
     },
     "AVAX-USD": {
-      "price": 6.6,
-      "chg_1d": 0.0428
+      "price": 6.79,
+      "chg_1d": 0.0729
     },
     "LINK-USD": {
-      "price": 10.25,
-      "chg_1d": 0.0748
+      "price": 10.76,
+      "chg_1d": 0.1286
     },
     "DOT-USD": {
-      "price": 0.7802,
-      "chg_1d": 0.0392
+      "price": 0.802,
+      "chg_1d": 0.0682
     },
     "LTC-USD": {
-      "price": 46.17,
-      "chg_1d": 0.0418
+      "price": 46.74,
+      "chg_1d": 0.0545
     },
     "ATOM-USD": {
-      "price": 1.48,
-      "chg_1d": 0.0472
+      "price": 1.5,
+      "chg_1d": 0.0621
     },
     "SPY": {
       "price": 769.06,

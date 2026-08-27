@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-08-26T20:38:20Z",
+  "updated_at": "2026-08-27T00:33:06Z",
   "quotes": {
     "AAPL": {
       "price": 313.45,
@@ -266,144 +266,148 @@
       "chg_1d": -0.0287
     },
     "BHP.AX": {
-      "price": 67.4,
-      "chg_1d": -0.004
+      "price": 66.78,
+      "chg_1d": -0.0093
     },
     "CBA.AX": {
-      "price": 155.46,
-      "chg_1d": -0.0099
+      "price": 155.77,
+      "chg_1d": 0.002
     },
     "CSL.AX": {
-      "price": 172.44,
-      "chg_1d": -0.0069
+      "price": 172.95,
+      "chg_1d": 0.003
     },
     "NAB.AX": {
-      "price": 38.26,
-      "chg_1d": 0.0003
+      "price": 38.3,
+      "chg_1d": 0.001
     },
     "WBC.AX": {
-      "price": 33.83,
-      "chg_1d": -0.0056
+      "price": 33.96,
+      "chg_1d": 0.0038
     },
     "ANZ.AX": {
-      "price": 36.95,
-      "chg_1d": -0.0022
+      "price": 36.91,
+      "chg_1d": -0.0011
     },
     "WES.AX": {
-      "price": 83.27,
-      "chg_1d": 0.007
-    },
-    "MQG.AX": {
-      "price": 252.77,
-      "chg_1d": 0.0031
-    },
-    "WOW.AX": {
-      "price": 40.18,
-      "chg_1d": 0.0342
-    },
-    "TLS.AX": {
-      "price": 4.58,
-      "chg_1d": -0.0255
-    },
-    "RIO.AX": {
-      "price": 179.63,
-      "chg_1d": 0.0019
-    },
-    "FMG.AX": {
-      "price": 17.55,
-      "chg_1d": -0.009
-    },
-    "WDS.AX": {
-      "price": 31.92,
-      "chg_1d": -0.0327
-    },
-    "TCL.AX": {
-      "price": 13.88,
+      "price": 82.55,
       "chg_1d": -0.0086
     },
+    "MQG.AX": {
+      "price": 252.46,
+      "chg_1d": -0.0012
+    },
+    "GMG.AX": {
+      "price": 28.07,
+      "chg_1d": -0.0053
+    },
+    "WOW.AX": {
+      "price": 39.31,
+      "chg_1d": -0.0217
+    },
+    "TLS.AX": {
+      "price": 4.6,
+      "chg_1d": 0.0044
+    },
+    "RIO.AX": {
+      "price": 179.01,
+      "chg_1d": -0.0035
+    },
+    "FMG.AX": {
+      "price": 17.62,
+      "chg_1d": 0.004
+    },
+    "WDS.AX": {
+      "price": 31.98,
+      "chg_1d": 0.0019
+    },
+    "TCL.AX": {
+      "price": 13.9,
+      "chg_1d": 0.0014
+    },
     "XRO.AX": {
-      "price": 83.91,
-      "chg_1d": -0.0567
+      "price": 83.09,
+      "chg_1d": -0.0098
     },
     "WTC.AX": {
-      "price": 40.89,
-      "chg_1d": -0.1007
+      "price": 39.1,
+      "chg_1d": -0.0439
     },
     "COL.AX": {
-      "price": 24.03,
-      "chg_1d": 0.0118
+      "price": 23.72,
+      "chg_1d": -0.0129
     },
     "STO.AX": {
-      "price": 8.05,
-      "chg_1d": -0.0123
+      "price": 8.09,
+      "chg_1d": 0.005
     },
     "QBE.AX": {
-      "price": 21.8,
-      "chg_1d": -0.0113
+      "price": 21.92,
+      "chg_1d": 0.0055
     },
     "ALL.AX": {
-      "price": 61.21,
-      "chg_1d": -0.0108
+      "price": 60.73,
+      "chg_1d": -0.0078
     },
     "REA.AX": {
-      "price": 177.25,
-      "chg_1d": -0.008
+      "price": 175.8,
+      "chg_1d": -0.0082
     },
     "CAR.AX": {
-      "price": 29.26,
-      "chg_1d": -0.0014
+      "price": 28.55,
+      "chg_1d": -0.0243
     },
     "PME.AX": {
-      "price": 184.6,
-      "chg_1d": -0.0315
+      "price": 181.62,
+      "chg_1d": -0.0161
     },
     "BTC-USD": {
-      "price": 78342.25,
-      "chg_1d": -0.0028
+      "price": 78838.28,
+      "chg_1d": 0.0035
     },
     "ETH-USD": {
-      "price": 2466.29,
-      "chg_1d": 0.0095
+      "price": 2499.41,
+      "chg_1d": 0.023
     },
     "SOL-USD": {
-      "price": 96.56,
-      "chg_1d": -0.0005
+      "price": 101.01,
+      "chg_1d": 0.0456
     },
     "BNB-USD": {
-      "price": 698.16,
-      "chg_1d": 0.006
+      "price": 704.2,
+      "chg_1d": 0.0147
     },
     "XRP-USD": {
-      "price": 1.37,
-      "chg_1d": -0.0421
+      "price": 1.41,
+      "chg_1d": -0.018
     },
     "ADA-USD": {
-      "price": 0.2048,
-      "chg_1d": -0.0206
+      "price": 0.21108,
+      "chg_1d": 0.0095
     },
     "DOGE-USD": {
-      "price": 0.08484,
-      "chg_1d": -0.0102
+      "price": 0.08697,
+      "chg_1d": 0.0146
     },
     "AVAX-USD": {
-      "price": 7.23,
-      "chg_1d": -0.0135
+      "price": 7.39,
+      "chg_1d": 0.0084
     },
     "LINK-USD": {
-      "price": 11.25,
-      "chg_1d": -0.0025
+      "price": 11.55,
+      "chg_1d": 0.0238
     },
     "DOT-USD": {
-      "price": 0.8378,
-      "chg_1d": -0.0166
+      "price": 0.8793,
+      "chg_1d": 0.0321
     },
     "LTC-USD": {
-      "price": 49.85,
-      "chg_1d": -0.0014
+      "price": 50.17,
+      "chg_1d": 0.005
     },
     "ATOM-USD": {
-      "price": 1.49,
-      "chg_1d": -0.022
+      "price": 1.5,
+      "chg_1d": -0.0141
     },
     "SPY": {
       "price": 766.08,
@@ -414,8 +418,8 @@
       "chg_1d": 0.0009
     },
     "^AXJO": {
-      "price": 9164.6,
-      "chg_1d": 0.0068
+      "price": 9099.3,
+      "chg_1d": -0.0071
     },
     "ARM": {
       "price": 251.06,
@@ -434,12 +438,12 @@
       "chg_1d": 0.0197
     },
     "000660.KS": {
-      "price": 1678000.0,
-      "chg_1d": 0.0042
+      "price": 1767000.0,
+      "chg_1d": 0.0468
     },
     "005930.KS": {
-      "price": 257000.0,
-      "chg_1d": 0.0
+      "price": 269500.0,
+      "chg_1d": 0.0306
     },
     "WDC": {
       "price": 468.88,
